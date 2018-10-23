@@ -69,7 +69,7 @@
 //   June 2016 (updated) | June 2014 (created)
 //   Built with CCSv6.1, IAR, Keil, GCC
 //******************************************************************************
-#include "ti/devices/msp432p4xx/inc/msp.h"
+#include "msp.h"
 #include <stdint.h>
 
 uint8_t RXData0 = 0;
