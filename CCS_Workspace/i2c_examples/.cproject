@@ -191,4 +191,5 @@
 		<project id="i2c_examples.com.ti.ccstudio.buildDefinitions.MSP432.ProjectType.1662396580" name="MSP432" projectType="com.ti.ccstudio.buildDefinitions.MSP432.ProjectType"/>
 	</storageModule>
 	<storageModule moduleId="scannerConfiguration"/>
+	<storageModule moduleId="org.eclipse.cdt.make.core.buildtargets"/>
 </cproject>

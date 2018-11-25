@@ -30,7 +30,7 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * --/COPYRIGHT--*/
 /******************************************************************************
- *  MSP432 I2C - EUSCI_B3 I2C Master TX  bytes to MSP432 Slave - Timeout
+ *  MSP432 I2C - EUSCI_B0 I2C Master TX  bytes to MSP432 Slave - Timeout
  *
  *  Description: This demo connects two MSP432 's via the I2C bus. The master
  *  transmits to the slave. This is the MASTER CODE. It transmits a byte of
@@ -52,10 +52,10 @@
  *                MSP432P401     10k  10k      MSP432P401
  *                   slave         |    |         master
  *             -----------------   |    |   -----------------
- *            |     P1.6/UCB3SDA|<-|----+->|P1.6/UCB3SDA     |
+ *            |     P1.6/UCB0SDA|<-|----+->|P1.6/UCB0SDA     |
  *            |                 |  |       |                 |
  *            |                 |  |       |                 |
- *            |     P1.7/UCB3SCL|<-+------>|P1.7/UCB3SCL     |
+ *            |     P1.7/UCB0SCL|<-+------>|P1.7/UCB0SCL     |
  *            |                 |          |                 |
  *            |                 |          |           P1.0  |----> LED
  *            |                 |          |                 |
@@ -84,7 +84,7 @@ unsigned int i=0, timeout=0;
 const eUSCI_I2C_MasterConfig i2cConfig =
 {
         EUSCI_B_I2C_CLOCKSOURCE_SMCLK,          // SMCLK Clock Source
-        3000000,                                // SMCLK = 3MHz
+        3000,                                // SMCLK = 3kHz
         EUSCI_B_I2C_SET_DATA_RATE_100KBPS,      // Desired I2C Clock of 100khz
         0,                                      // No byte counter threshold
         EUSCI_B_I2C_NO_AUTO_STOP                // No Autostop
@@ -99,39 +99,39 @@ int main(void)
     MAP_GPIO_setAsOutputPin(GPIO_PORT_P1, GPIO_PIN0);
 
     /* Select Port 1 for I2C - Set Pin 6, 7 to input Primary Module Function,
-     *   (UCB3SIMO/UCB3SDA, UCB3SOMI/UCB3SCL).
+     *   (UCB0SIMO/UCB0SDA, UCB0SOMI/UCB0SCL).
      */
-    MAP_GPIO_setAsPeripheralModuleFunctionInputPin(GPIO_PORT_P3,
+    MAP_GPIO_setAsPeripheralModuleFunctionInputPin(GPIO_PORT_P1,
             GPIO_PIN6 + GPIO_PIN7, GPIO_PRIMARY_MODULE_FUNCTION);
     stopSent = false;
     memset(RXData, 0x00, NUM_OF_REC_BYTES);
 
     /* Initializing I2C Master to SMCLK at 100khz with no autostop */
-    MAP_I2C_initMaster(EUSCI_B3_BASE, &i2cConfig);
+    MAP_I2C_initMaster(EUSCI_B0_BASE, &i2cConfig);
 
     /* Set clock low timeout, interrupt triggered if slave hold SCL>28ms */
-    MAP_I2C_setTimeout(EUSCI_B3_BASE, EUSCI_B_I2C_TIMEOUT_28_MS);
+    MAP_I2C_setTimeout(EUSCI_B0_BASE, EUSCI_B_I2C_TIMEOUT_28_MS);
 
     /* Specify slave address */
-    MAP_I2C_setSlaveAddress(EUSCI_B3_BASE, SLAVE_ADDRESS);
+    MAP_I2C_setSlaveAddress(EUSCI_B0_BASE, SLAVE_ADDRESS);
 
     /* Enable I2C Module to start operations */
-    MAP_I2C_enableModule(EUSCI_B3_BASE);
-    MAP_Interrupt_enableInterrupt(INT_EUSCIB3);
-    MAP_I2C_enableInterrupt(EUSCI_B3_BASE, EUSCI_B_I2C_RECEIVE_INTERRUPT0);
-    MAP_I2C_enableInterrupt(EUSCI_B3_BASE, EUSCI_B_I2C_CLOCK_LOW_TIMEOUT_INTERRUPT);
+    MAP_I2C_enableModule(EUSCI_B0_BASE);
+    MAP_Interrupt_enableInterrupt(INT_EUSCIB0);
+    MAP_I2C_enableInterrupt(EUSCI_B0_BASE, EUSCI_B_I2C_RECEIVE_INTERRUPT0);
+    MAP_I2C_enableInterrupt(EUSCI_B0_BASE, EUSCI_B_I2C_CLOCK_LOW_TIMEOUT_INTERRUPT);
 
     /* Making sure the last transaction has been completely sent out */
-    while (MAP_I2C_masterIsStopSent(EUSCI_B3_BASE));
+    while (MAP_I2C_masterIsStopSent(EUSCI_B0_BASE));
 
     MAP_Interrupt_enableSleepOnIsrExit();
 
     /* Send start and the first byte of the transmit buffer. */
-    MAP_I2C_masterSendMultiByteStart(EUSCI_B3_BASE, TXData[0]);
+    MAP_I2C_masterSendMultiByteStart(EUSCI_B0_BASE, TXData[0]);
 
     /* Sent the first byte, now we need to initiate the read */
     xferIndex = 0;
-    MAP_I2C_masterReceiveStart(EUSCI_B3_BASE);
+    MAP_I2C_masterReceiveStart(EUSCI_B0_BASE);
 
     while(1)
     {
@@ -147,15 +147,15 @@ int main(void)
 }
 
 /*******************************************************************************
- * eUSCIB3 ISR. The repeated start and transmit/receive operations happen
+ * eUSCIB0 ISR. The repeated start and transmit/receive operations happen
  * within this ISR.
  *******************************************************************************/
-void EUSCIB3_IRQHandler(void)
+void EUSCIB0_IRQHandler(void)
 {
     uint_fast16_t status;
 
-    status = MAP_I2C_getEnabledInterruptStatus(EUSCI_B3_BASE);
-    MAP_I2C_clearInterruptFlag(EUSCI_B3_BASE, status);
+    status = MAP_I2C_getEnabledInterruptStatus(EUSCI_B0_BASE);
+    MAP_I2C_clearInterruptFlag(EUSCI_B0_BASE, status);
 
     /* Check for clock low timeout and increment timeout counter */
     if (status & EUSCI_B_I2C_CLOCK_LOW_TIMEOUT_INTERRUPT)
@@ -169,27 +169,27 @@ void EUSCIB3_IRQHandler(void)
     {
         if (xferIndex == NUM_OF_REC_BYTES - 2)
         {
-            MAP_I2C_disableInterrupt(EUSCI_B3_BASE,
+            MAP_I2C_disableInterrupt(EUSCI_B0_BASE,
                     EUSCI_B_I2C_RECEIVE_INTERRUPT0);
-            MAP_I2C_enableInterrupt(EUSCI_B3_BASE, EUSCI_B_I2C_STOP_INTERRUPT);
+            MAP_I2C_enableInterrupt(EUSCI_B0_BASE, EUSCI_B_I2C_STOP_INTERRUPT);
 
             /*
              * Switch order so that stop is being set during reception of last
              * byte read byte so that next byte can be read.
              */
-            MAP_I2C_masterReceiveMultiByteStop(EUSCI_B3_BASE);
+            MAP_I2C_masterReceiveMultiByteStop(EUSCI_B0_BASE);
             RXData[xferIndex++] = MAP_I2C_masterReceiveMultiByteNext(
-                    EUSCI_B3_BASE);
+                    EUSCI_B0_BASE);
         } else
         {
             RXData[xferIndex++] = MAP_I2C_masterReceiveMultiByteNext(
-            EUSCI_B3_BASE);
+            EUSCI_B0_BASE);
         }
     }
     else if (status & EUSCI_B_I2C_STOP_INTERRUPT)
     {
         MAP_Interrupt_disableSleepOnIsrExit();
-        MAP_I2C_disableInterrupt(EUSCI_B3_BASE,
+        MAP_I2C_disableInterrupt(EUSCI_B0_BASE,
                                  EUSCI_B_I2C_STOP_INTERRUPT);
     }
 }
