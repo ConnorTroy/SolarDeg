@@ -65,16 +65,18 @@
 #include <drivers/driverlib.h>
 
 /* Standard Defines */
+#include <stdio.h>
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
 
 /* Slave Address for I2C Slave */
-#define SLAVE_ADDRESS       0x48
-#define NUM_OF_REC_BYTES    10
+#define SLAVE_ADDRESS       0x68
+#define NUM_OF_REC_BYTES    1
 
 /* Variables */
-const uint8_t TXData[] = {0x04};
+const uint8_t TXData[] = {0x60, 0xA0};
+//const uint8_t TXData[] = {0x60, 0xA0};
 static uint8_t RXData[NUM_OF_REC_BYTES];
 static volatile uint32_t xferIndex;
 static volatile bool stopSent;
@@ -84,7 +86,7 @@ unsigned int i=0, timeout=0;
 const eUSCI_I2C_MasterConfig i2cConfig =
 {
         EUSCI_B_I2C_CLOCKSOURCE_SMCLK,          // SMCLK Clock Source
-        3000,                                // SMCLK = 3kHz
+        30000,                                // SMCLK = 30kHz
         EUSCI_B_I2C_SET_DATA_RATE_100KBPS,      // Desired I2C Clock of 100khz
         0,                                      // No byte counter threshold
         EUSCI_B_I2C_NO_AUTO_STOP                // No Autostop
@@ -127,12 +129,18 @@ int main(void)
     MAP_Interrupt_enableSleepOnIsrExit();
 
     /* Send start and the first byte of the transmit buffer. */
-    MAP_I2C_masterSendMultiByteStart(EUSCI_B0_BASE, TXData[0]);
+//    MAP_I2C_masterSendMultiByteStart(EUSCI_B0_BASE, TXData[0]);
+//    MAP_I2C_masterSendMultiByteFinish(EUSCI_B0_BASE, TXData[1]);
+//    while (MAP_I2C_masterIsStopSent(EUSCI_B0_BASE));
+
+    MAP_I2C_masterSendSingleByte(EUSCI_B0_BASE, 0x36);
+    while (MAP_I2C_masterIsStopSent(EUSCI_B0_BASE));
+//    __delay_cycles(3000000);
 
     /* Sent the first byte, now we need to initiate the read */
     xferIndex = 0;
     MAP_I2C_masterReceiveStart(EUSCI_B0_BASE);
-
+    while (MAP_I2C_masterIsStopSent(EUSCI_B0_BASE));
     while(1)
     {
         MAP_PCM_gotoLPM0InterruptSafe();
@@ -167,7 +175,7 @@ void EUSCIB0_IRQHandler(void)
      * send a STOP condition */
     if (status & EUSCI_B_I2C_RECEIVE_INTERRUPT0)
     {
-        if (xferIndex == NUM_OF_REC_BYTES - 2)
+        if (xferIndex >= NUM_OF_REC_BYTES - 1)
         {
             MAP_I2C_disableInterrupt(EUSCI_B0_BASE,
                     EUSCI_B_I2C_RECEIVE_INTERRUPT0);
