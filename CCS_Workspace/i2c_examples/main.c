@@ -71,13 +71,19 @@
 #include <string.h>
 
 /* Slave Address for I2C Slave */
-#define SLAVE_ADDRESS       0x68
-#define NUM_OF_REC_BYTES    1
+//#define SLAVE_ADDRESS       0x68
+#define SLAVE_ADDRESS       0x48
+
+
+#define NUM_OF_TX_BYTES     3
+#define NUM_OF_RX_BYTES     2
 
 /* Variables */
-const uint8_t TXData[] = {0x60, 0xA0};
+static uint8_t TXByteCtr;
+const uint8_t TXData[] = {0x01, 0x60, 0xA0};
+static uint32_t *TXptr = TXData;
 //const uint8_t TXData[] = {0x60, 0xA0};
-static uint8_t RXData[NUM_OF_REC_BYTES];
+static uint8_t RXData[NUM_OF_RX_BYTES];
 static volatile uint32_t xferIndex;
 static volatile bool stopSent;
 unsigned int i=0, timeout=0;
@@ -106,7 +112,7 @@ int main(void)
     MAP_GPIO_setAsPeripheralModuleFunctionInputPin(GPIO_PORT_P1,
             GPIO_PIN6 + GPIO_PIN7, GPIO_PRIMARY_MODULE_FUNCTION);
     stopSent = false;
-    memset(RXData, 0x00, NUM_OF_REC_BYTES);
+    memset(RXData, 0x00, NUM_OF_RX_BYTES);
 
     /* Initializing I2C Master to SMCLK at 100khz with no autostop */
     MAP_I2C_initMaster(EUSCI_B0_BASE, &i2cConfig);
@@ -119,21 +125,24 @@ int main(void)
 
     /* Enable I2C Module to start operations */
     MAP_I2C_enableModule(EUSCI_B0_BASE);
+    MAP_I2C_clearInterruptFlag(EUSCI_B0_BASE,
+        EUSCI_B_I2C_RECEIVE_INTERRUPT0 + EUSCI_B_I2C_TRANSMIT_INTERRUPT0 + EUSCI_B_I2C_NAK_INTERRUPT + EUSCI_B_I2C_CLOCK_LOW_TIMEOUT_INTERRUPT);
+    MAP_I2C_enableInterrupt(EUSCI_B0_BASE,
+        EUSCI_B_I2C_RECEIVE_INTERRUPT0 + EUSCI_B_I2C_TRANSMIT_INTERRUPT0 + EUSCI_B_I2C_NAK_INTERRUPT + EUSCI_B_I2C_CLOCK_LOW_TIMEOUT_INTERRUPT);
     MAP_Interrupt_enableInterrupt(INT_EUSCIB0);
-    MAP_I2C_enableInterrupt(EUSCI_B0_BASE, EUSCI_B_I2C_RECEIVE_INTERRUPT0);
-    MAP_I2C_enableInterrupt(EUSCI_B0_BASE, EUSCI_B_I2C_CLOCK_LOW_TIMEOUT_INTERRUPT);
 
     /* Making sure the last transaction has been completely sent out */
     while (MAP_I2C_masterIsStopSent(EUSCI_B0_BASE));
 
     MAP_Interrupt_enableSleepOnIsrExit();
 
-    /* Send start and the first byte of the transmit buffer. */
-//    MAP_I2C_masterSendMultiByteStart(EUSCI_B0_BASE, TXData[0]);
-//    MAP_I2C_masterSendMultiByteFinish(EUSCI_B0_BASE, TXData[1]);
-//    while (MAP_I2C_masterIsStopSent(EUSCI_B0_BASE));
 
-    MAP_I2C_masterSendSingleByte(EUSCI_B0_BASE, 0x36);
+    TXByteCtr = NUM_OF_TX_BYTES;
+    /* Send start and the first byte of the transmit buffer. */
+    MAP_I2C_masterSendMultiByteStart(EUSCI_B0_BASE, *TXptr);
+    while (MAP_I2C_masterIsStopSent(EUSCI_B0_BASE));
+
+    MAP_I2C_masterSendSingleByte(EUSCI_B0_BASE, 0x00);
     while (MAP_I2C_masterIsStopSent(EUSCI_B0_BASE));
 //    __delay_cycles(3000000);
 
@@ -165,6 +174,27 @@ void EUSCIB0_IRQHandler(void)
     status = MAP_I2C_getEnabledInterruptStatus(EUSCI_B0_BASE);
     MAP_I2C_clearInterruptFlag(EUSCI_B0_BASE, status);
 
+    if (status & EUSCI_B_I2C_NAK_INTERRUPT)
+        {
+            MAP_I2C_masterSendStart(EUSCI_B0_BASE);
+        }
+
+        if (status & EUSCI_B_I2C_TRANSMIT_INTERRUPT0)
+        {
+            /* Check the byte counter */
+            if (TXByteCtr)
+            {
+                /* Send the next data and decrement the byte counter */
+                TXptr++;
+                MAP_I2C_masterSendMultiByteNext(EUSCI_B0_BASE, *TXptr);
+                TXByteCtr--;
+            } else
+            {
+                MAP_I2C_masterSendMultiByteStop(EUSCI_B0_BASE);
+                MAP_Interrupt_disableSleepOnIsrExit();
+            }
+        }
+
     /* Check for clock low timeout and increment timeout counter */
     if (status & EUSCI_B_I2C_CLOCK_LOW_TIMEOUT_INTERRUPT)
     {
@@ -175,7 +205,7 @@ void EUSCIB0_IRQHandler(void)
      * send a STOP condition */
     if (status & EUSCI_B_I2C_RECEIVE_INTERRUPT0)
     {
-        if (xferIndex >= NUM_OF_REC_BYTES - 1)
+        if (xferIndex >= NUM_OF_RX_BYTES - 1)
         {
             MAP_I2C_disableInterrupt(EUSCI_B0_BASE,
                     EUSCI_B_I2C_RECEIVE_INTERRUPT0);
