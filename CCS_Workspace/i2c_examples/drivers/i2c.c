@@ -72,11 +72,8 @@ void I2C_initMaster(uint32_t moduleInstance,
      * UCMODE_3 = I2C mode
      * UCSYNC = Synchronous mode
      */
-    EUSCI_B_CMSIS(moduleInstance)->CTLW0 = (EUSCI_B_CMSIS(moduleInstance)->CTLW0
-            & ~EUSCI_B_CTLW0_SSEL_MASK)
-            | (config->selectClockSource | EUSCI_B_CTLW0_MST
-                    | EUSCI_B_CTLW0_MODE_3 | EUSCI_B_CTLW0_SYNC
-                    | EUSCI_B_CTLW0_SWRST);
+    EUSCI_B_CMSIS(moduleInstance)->CTLW0 =
+            (EUSCI_B_CMSIS(moduleInstance)->CTLW0 & ~EUSCI_B_CTLW0_SSEL_MASK) | (config->selectClockSource | EUSCI_B_CTLW0_MST | EUSCI_B_CTLW0_MODE_3 | EUSCI_B_CTLW0_SYNC | EUSCI_B_CTLW0_SWRST);
 
     /*
      * Compute the clock divider that achieves the fastest speed less than or
@@ -221,10 +218,7 @@ void I2C_masterSendSingleByte(uint32_t moduleInstance, uint8_t txData)
             + EUSCI_B_CTLW0_TXSTT;
 
     //Poll for transmit interrupt flag and start condition flag.
-    while ((BITBAND_PERI(EUSCI_B_CMSIS(moduleInstance)->CTLW0,
-                EUSCI_B_CTLW0_TXSTT_OFS)
-                || !BITBAND_PERI(EUSCI_B_CMSIS(moduleInstance)->IFG,
-                        EUSCI_B_IFG_TXIFG0_OFS)));
+    while ((BITBAND_PERI(EUSCI_B_CMSIS(moduleInstance)->CTLW0, EUSCI_B_CTLW0_TXSTT_OFS) || !BITBAND_PERI(EUSCI_B_CMSIS(moduleInstance)->IFG, EUSCI_B_IFG_TXIFG0_OFS)));
 
     //Send single byte data.
     EUSCI_B_CMSIS(moduleInstance)->TXBUF = txData;
