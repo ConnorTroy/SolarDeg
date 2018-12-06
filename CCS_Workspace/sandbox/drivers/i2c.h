@@ -77,15 +77,15 @@ typedef struct
 #define EUSCI_B_CMSIS(x) ((EUSCI_B_Type *) x)
 
 //Initializes I2C as master and with parameters set in I2C_Config
-void I2C_init(uint32_t module, const I2C_Config *config);
+void I2C_init(EUSCI_B_Type * module, const I2C_Config *config);
 
 //Sets new I2C address for use with given module
-void I2C_setSlaveAddress(uint32_t module, uint8_t address);
+void I2C_setSlaveAddress(EUSCI_B_Type * module, uint8_t address);
 
 //Writes data to i2c line given data location and number of bytes
-void I2C_send(uint32_t module, uint8_t *tx_data, uint32_t num_bytes);
+void I2C_send(EUSCI_B_Type * module, uint8_t *tx_data, uint32_t num_bytes);
 
 //Reads data from i2c line given a place to store it and number of bytes to receive
-void I2C_receive(uint32_t module, uint8_t *rx_data, uint32_t num_bytes);
+void I2C_receive(EUSCI_B_Type * module, uint8_t *rx_data, uint32_t num_bytes);
 
 #endif /* DRIVERS_I2C_H_ */

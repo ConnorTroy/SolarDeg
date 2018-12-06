@@ -13,7 +13,7 @@
 
 
 
-void I2C_init(uint32_t module, const I2C_Config *config)
+void I2C_init(EUSCI_B_Type * module, const I2C_Config *config)
 {
     /*
      * Initializes I2C as master and with parameters set in I2C_Config
@@ -47,7 +47,7 @@ void I2C_init(uint32_t module, const I2C_Config *config)
 }
 
 
-void I2C_setSlaveAddress(uint32_t module, uint8_t address)
+void I2C_setSlaveAddress(EUSCI_B_Type * module, uint8_t address)
 {
     /*
      * Sets new I2C address for use with given module
@@ -56,7 +56,7 @@ void I2C_setSlaveAddress(uint32_t module, uint8_t address)
 }
 
 
-void I2C_send(uint32_t module, uint8_t *tx_data, uint32_t num_bytes)
+void I2C_send(EUSCI_B_Type * module, uint8_t *tx_data, uint32_t num_bytes)
 {
     /*
      * Writes data to i2c line given data location and number of bytes
@@ -74,20 +74,24 @@ void I2C_send(uint32_t module, uint8_t *tx_data, uint32_t num_bytes)
     EUSCI_B_CMSIS(module)->CTLW0 |= EUSCI_B_CTLW0_TR + EUSCI_B_CTLW0_TXSTT;
 
     //Poll for transmit interrupt flag and start condition flag.
-    while (!(EUSCI_B_CMSIS(module)->CTLW0 & EUSCI_B_CTLW0_TXSTT) || !(EUSCI_B_CMSIS(module)->IFG & EUSCI_B_IFG_TXIFG0));
+    while ((EUSCI_B_CMSIS(module)->CTLW0 & EUSCI_B_CTLW0_TXSTT) || !(EUSCI_B_CMSIS(module)->IFG & EUSCI_B_IFG_TXIFG0));
 
+    uint32_t alltime = 0;
     uint32_t counter = 0;
     //iterate through data and write to TXBUF
     while (counter < num_bytes)
     {
         EUSCI_B_CMSIS(module)->TXBUF = *tx_data;
+        alltime++;
 
         //Poll for transmit or NACK interrupt flag.
         while (!(EUSCI_B_CMSIS(module)->IFG & EUSCI_B_IFG_TXIFG0) && !(EUSCI_B_CMSIS(module)->IFG & EUSCI_B_IFG_NACKIFG));
 
         //If a ACK is received, iterate to next byte
-        if (!(EUSCI_B_CMSIS(module)->IFG & EUSCI_B_IFG_NACKIFG))
+        int ackcheck = !(EUSCI_B_CMSIS(module)->IFG & EUSCI_B_IFG_NACKIFG);
+        if (ackcheck)
         {
+
             tx_data++;
             counter++;
         }
@@ -96,8 +100,10 @@ void I2C_send(uint32_t module, uint8_t *tx_data, uint32_t num_bytes)
         {
             EUSCI_B_CMSIS(module)->IFG &= ~(EUSCI_B_IFG_NACKIFG);
             EUSCI_B_CMSIS(module)->CTLW0 |= EUSCI_B_CTLW0_TR + EUSCI_B_CTLW0_TXSTT;
+            tx_data -= counter;
+            counter = 0;
         }
-        EUSCI_B_CMSIS(module)->IFG &= ~(EUSCI_B_IFG_TXIFG0);
+//        EUSCI_B_CMSIS(module)->IFG &= ~(EUSCI_B_IFG_TXIFG0);
     }
 
     //Make sure transmit buffer is empty and send stop command
@@ -106,7 +112,7 @@ void I2C_send(uint32_t module, uint8_t *tx_data, uint32_t num_bytes)
 }
 
 
-void I2C_receive(uint32_t module, uint8_t *rx_data, uint32_t num_bytes)
+void I2C_receive(EUSCI_B_Type * module, uint8_t *rx_data, uint32_t num_bytes)
 {
     /*
      * Reads data from i2c line given a place to store it and number of bytes to receive
