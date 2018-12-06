@@ -70,8 +70,10 @@ void I2C_send(EUSCI_B_Type * module, uint8_t *tx_data, uint32_t num_bytes)
     // Wait until ready to write
     while (EUSCI_B_CMSIS(module)->STATW & EUSCI_B_STATW_BBUSY);
 
+    EUSCI_B_CMSIS(module)->CTLW0 |= EUSCI_B_CTLW0_TR;
+
     // Set to transmit mode and initiate start condition
-    EUSCI_B_CMSIS(module)->CTLW0 |= EUSCI_B_CTLW0_TR + EUSCI_B_CTLW0_TXSTT;
+    EUSCI_B_CMSIS(module)->CTLW0 |= EUSCI_B_CTLW0_TXSTT;
 
     //Poll for transmit interrupt flag and start condition flag.
     while ((EUSCI_B_CMSIS(module)->CTLW0 & EUSCI_B_CTLW0_TXSTT) || !(EUSCI_B_CMSIS(module)->IFG & EUSCI_B_IFG_TXIFG0));
@@ -81,7 +83,7 @@ void I2C_send(EUSCI_B_Type * module, uint8_t *tx_data, uint32_t num_bytes)
     //iterate through data and write to TXBUF
     while (counter < num_bytes)
     {
-        EUSCI_B_CMSIS(module)->TXBUF = *tx_data;
+        EUSCI_B_CMSIS(module)->TXBUF = (uint8_t) *tx_data;
         alltime++;
 
         //Poll for transmit or NACK interrupt flag.
@@ -107,7 +109,7 @@ void I2C_send(EUSCI_B_Type * module, uint8_t *tx_data, uint32_t num_bytes)
     }
 
     //Make sure transmit buffer is empty and send stop command
-    while (!(EUSCI_B_CMSIS(module)->IFG & EUSCI_B_IFG_TXIFG0));
+//    while (!(EUSCI_B_CMSIS(module)->IFG & EUSCI_B_IFG_TXIFG0));
     EUSCI_B_CMSIS(module)->CTLW0 |= EUSCI_B_CTLW0_TXSTP;
 }
 
@@ -135,18 +137,17 @@ void I2C_receive(EUSCI_B_Type * module, uint8_t *rx_data, uint32_t num_bytes)
     while (counter < num_bytes)
     {
         //Poll for receive interrupt flag.
-        while (!EUSCI_B_CMSIS(module)->IFG & EUSCI_B_IFG_RXIFG0);
-        //Store data in rx_data
+//        while (!(EUSCI_B_CMSIS(module)->IFG & EUSCI_B_IFG_RXIFG0));
 
+        //Store data in rx_data
         *rx_data = EUSCI_B_CMSIS(module)->RXBUF & EUSCI_B_RXBUF_RXBUF_MASK;
 
         rx_data++;
         counter++;
-
-        EUSCI_B_CMSIS(module)->IFG &= ~(EUSCI_B_IFG_RXIFG0);
     }
     //Send stop
     EUSCI_B_CMSIS(module)->CTLW0 |= EUSCI_B_CTLW0_TXSTP;
+    EUSCI_B_CMSIS(module)->CTLW0 |= EUSCI_B_CTLW0_SWRST;
 }
 
 
