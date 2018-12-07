@@ -23,7 +23,7 @@ void I2C_init(EUSCI_B_Type * module, const I2C_Config *config)
     EUSCI_B_CMSIS(module)->CTLW0 = EUSCI_B_CTLW0_SWRST;
 
     //Configure Automatic STOP condition generation
-    EUSCI_B_CMSIS(module)->CTLW1 &= ~EUSCI_B_CTLW1_ASTP_MASK | config->autoSTOPGeneration;
+    EUSCI_B_CMSIS(module)->CTLW1 = config->autoSTOPGeneration;
 
     //Byte Count Threshold
     EUSCI_B_CMSIS(module)->TBCNT = config->byteCounterThreshold;
@@ -42,8 +42,43 @@ void I2C_init(EUSCI_B_Type * module, const I2C_Config *config)
      * UCMODE_3 = I2C mode
      * UCSYNC = Synchronous mode
      */
-    EUSCI_B_CMSIS(module)->CTLW0 &=  ~EUSCI_B_CTLW0_SSEL_MASK | (config->selectClockSource | EUSCI_B_CTLW0_MST | EUSCI_B_CTLW0_MODE_3 | EUSCI_B_CTLW0_SYNC | EUSCI_B_CTLW0_SWRST);
+    EUSCI_B_CMSIS(module)->CTLW0 |= config->selectClockSource + EUSCI_B_CTLW0_MST + EUSCI_B_CTLW0_MODE_3;
 
+    // Enable pins specific to each eUSCI module
+    switch((int)module)
+    {
+    case (int)EUSCI_B0:
+        // Pins 1.6 (SDA) and 1.7 (SCL)
+        P1 -> SEL0 |= BIT6 + BIT7;
+        P1 -> SEL1 &= ~(BIT6 + BIT7);
+        break;
+    case (int)EUSCI_B1:
+        // Pins 6.4 (SDA) and 6.5 (SCL)
+        P6 -> SEL0 |= BIT4 + BIT5;
+        P6 -> SEL1 &= ~(BIT4 + BIT5);
+        break;
+    case (int)EUSCI_B2:
+        // Pins 3.6 (SDA) and 3.7 (SCL)
+        P3 -> SEL0 |= BIT6 + BIT7;
+        P3 -> SEL1 &= ~(BIT6 + BIT7);
+        break;
+    case (int)EUSCI_B3:
+        // Pins 6.2 (SDA) and 6.3 (SCL)
+        P6 -> SEL0 |= BIT2 + BIT3;
+        P6 -> SEL1 &= ~(BIT2 + BIT3);
+        break;
+    }
+
+}
+
+
+void I2C_enable(EUSCI_B_Type * module)
+{
+    /*
+     * Enables the eUSCI Module
+     */
+
+    EUSCI_B_CMSIS(module)->CTLW0 &= ~EUSCI_B_CTLW0_SWRST;
 }
 
 
@@ -52,6 +87,7 @@ void I2C_setSlaveAddress(EUSCI_B_Type * module, uint8_t address)
     /*
      * Sets new I2C address for use with given module
      */
+
     EUSCI_B_CMSIS(module)->I2CSA = address;
 }
 
@@ -62,29 +98,23 @@ void I2C_send(EUSCI_B_Type * module, uint8_t *tx_data, uint32_t num_bytes)
      * Writes data to i2c line given data location and number of bytes
      */
 
-//    EUSCI_B_CMSIS(module)->CTLW0 |= ;
-
     // Clear any existing interrupt flag
     EUSCI_B_CMSIS(module)->IFG &= ~EUSCI_B_IFG_TXIFG0;
 
     // Wait until ready to write
     while (EUSCI_B_CMSIS(module)->STATW & EUSCI_B_STATW_BBUSY);
 
-    EUSCI_B_CMSIS(module)->CTLW0 |= EUSCI_B_CTLW0_TR;
-
     // Set to transmit mode and initiate start condition
-    EUSCI_B_CMSIS(module)->CTLW0 |= EUSCI_B_CTLW0_TXSTT;
+    EUSCI_B_CMSIS(module)->CTLW0 |= EUSCI_B_CTLW0_TR + EUSCI_B_CTLW0_TXSTT;
 
     //Poll for transmit interrupt flag and start condition flag.
     while ((EUSCI_B_CMSIS(module)->CTLW0 & EUSCI_B_CTLW0_TXSTT) || !(EUSCI_B_CMSIS(module)->IFG & EUSCI_B_IFG_TXIFG0));
 
-    uint32_t alltime = 0;
     uint32_t counter = 0;
-    //iterate through data and write to TXBUF
+    //Iterate through data and write to TXBUF
     while (counter < num_bytes)
     {
         EUSCI_B_CMSIS(module)->TXBUF = (uint8_t) *tx_data;
-        alltime++;
 
         //Poll for transmit or NACK interrupt flag.
         while (!(EUSCI_B_CMSIS(module)->IFG & EUSCI_B_IFG_TXIFG0) && !(EUSCI_B_CMSIS(module)->IFG & EUSCI_B_IFG_NACKIFG));
@@ -93,10 +123,10 @@ void I2C_send(EUSCI_B_Type * module, uint8_t *tx_data, uint32_t num_bytes)
         int ackcheck = !(EUSCI_B_CMSIS(module)->IFG & EUSCI_B_IFG_NACKIFG);
         if (ackcheck)
         {
-
             tx_data++;
             counter++;
         }
+
         //Otherwise clear NACK interrupt and try again
         else
         {
@@ -105,11 +135,9 @@ void I2C_send(EUSCI_B_Type * module, uint8_t *tx_data, uint32_t num_bytes)
             tx_data -= counter;
             counter = 0;
         }
-//        EUSCI_B_CMSIS(module)->IFG &= ~(EUSCI_B_IFG_TXIFG0);
     }
 
-    //Make sure transmit buffer is empty and send stop command
-//    while (!(EUSCI_B_CMSIS(module)->IFG & EUSCI_B_IFG_TXIFG0));
+    //Send stop command
     EUSCI_B_CMSIS(module)->CTLW0 |= EUSCI_B_CTLW0_TXSTP;
 }
 
@@ -134,10 +162,16 @@ void I2C_receive(EUSCI_B_Type * module, uint8_t *rx_data, uint32_t num_bytes)
     EUSCI_B_CMSIS(module)->CTLW0 |= EUSCI_B_CTLW0_TXSTT;
 
     uint32_t counter = 0;
-    while (counter < num_bytes)
+    while (!(EUSCI_B_CMSIS(module)->CTLW0 & EUSCI_B_CTLW0_TXSTP))
     {
+        if (counter >= num_bytes -1)
+        {
+            //Set stop condition bit so that eUSCI sends stop after next byte has been read from rx buffer
+            EUSCI_B_CMSIS(module)->CTLW0 |= EUSCI_B_CTLW0_TXSTP;
+        }
+
         //Poll for receive interrupt flag.
-//        while (!(EUSCI_B_CMSIS(module)->IFG & EUSCI_B_IFG_RXIFG0));
+        while (!(EUSCI_B_CMSIS(module)->IFG & EUSCI_B_IFG_RXIFG0));
 
         //Store data in rx_data
         *rx_data = EUSCI_B_CMSIS(module)->RXBUF & EUSCI_B_RXBUF_RXBUF_MASK;
@@ -145,9 +179,6 @@ void I2C_receive(EUSCI_B_Type * module, uint8_t *rx_data, uint32_t num_bytes)
         rx_data++;
         counter++;
     }
-    //Send stop
-    EUSCI_B_CMSIS(module)->CTLW0 |= EUSCI_B_CTLW0_TXSTP;
-    EUSCI_B_CMSIS(module)->CTLW0 |= EUSCI_B_CTLW0_SWRST;
 }
 
 
