@@ -38,11 +38,11 @@ const I2C_Config i2cConfig =
 };
 
 /* INA219 Configuration Parameter */
-const INA219_Config powerSensorConfig =
+const INA219 powerSensorConfig =
 {
      I2C_MODULE,
-     CONFIG_DEFAULT,
-     0xF000
+     INA219_ADDR_1,
+     INA219_CONFIG_DEFAULT
 };
 
 
