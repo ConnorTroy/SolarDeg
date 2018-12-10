@@ -188,7 +188,7 @@ int INA219_readBusVoltage(INA219* sensor)
     // Recieve data in calibration register
     I2C_receive(sensor->module, RX_Data, 2);
 
-    return (RX_Data[0] << 8) + RX_Data[1];
+    return ((RX_Data[0] << 8) + RX_Data[1]) >> 3;
 }
 
 
