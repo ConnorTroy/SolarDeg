@@ -2,7 +2,9 @@
  * i2c.c
  *
  *  Created on: Dec 2, 2018
- *      Author: ctroy
+ *      Author: Connor Troy
+ *
+ *  This driver handles basic i2c sends and receives
  */
 
 

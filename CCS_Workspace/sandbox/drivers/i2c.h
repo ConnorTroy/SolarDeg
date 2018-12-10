@@ -2,7 +2,9 @@
  * i2c.h
  *
  *  Created on: Dec 2, 2018
- *      Author: ctroy
+ *      Author: Connor Troy
+ *
+ *  This driver handles basic i2c sends and receives
  */
 
 #ifndef DRIVERS_I2C_H_
@@ -11,14 +13,14 @@
 #include <stdint.h>
 #include <msp.h>
 
-#define EUSCI_B_I2C_SET_DATA_RATE_1MBPS                                 1000000
-#define EUSCI_B_I2C_SET_DATA_RATE_400KBPS                                400000
-#define EUSCI_B_I2C_SET_DATA_RATE_100KBPS                                100000
+#define EUSCI_B_I2C_SET_DATA_RATE_1MBPS                             1000000
+#define EUSCI_B_I2C_SET_DATA_RATE_400KBPS                           400000
+#define EUSCI_B_I2C_SET_DATA_RATE_100KBPS                           100000
 
-#define EUSCI_B_I2C_TIMEOUT_DISABLE                        EUSCI_B_CTLW1_CLTO_0
-#define EUSCI_B_I2C_TIMEOUT_28_MS                          EUSCI_B_CTLW1_CLTO_1
-#define EUSCI_B_I2C_TIMEOUT_31_MS                          EUSCI_B_CTLW1_CLTO_2
-#define EUSCI_B_I2C_TIMEOUT_34_MS                          EUSCI_B_CTLW1_CLTO_3
+#define EUSCI_B_I2C_TIMEOUT_DISABLE                                 EUSCI_B_CTLW1_CLTO_0
+#define EUSCI_B_I2C_TIMEOUT_28_MS                                   EUSCI_B_CTLW1_CLTO_1
+#define EUSCI_B_I2C_TIMEOUT_31_MS                                   EUSCI_B_CTLW1_CLTO_2
+#define EUSCI_B_I2C_TIMEOUT_34_MS                                   EUSCI_B_CTLW1_CLTO_3
 
 typedef struct
 {

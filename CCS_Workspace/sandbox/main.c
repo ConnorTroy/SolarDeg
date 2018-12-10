@@ -1,9 +1,4 @@
-
-#include "msp.h"
-#include "drivers/i2c.h"
-
-#include <stdint.h>
-#include <string.h>
+#include "drivers/driverConfig.h"
 
 /**
  * main.c
@@ -16,23 +11,6 @@
  *
  */
 
-#define TMP_ADDR                0x48
-#define ACC_ADDR_1              0x68
-#define ACC_ADDR_2              0x69
-#define INA219_ADDR             0x40
-
-#define I2C_MODULE              EUSCI_B2
-
-
-/* I2C Master Configuration Parameter */
-const I2C_Config i2cConfig =
-{
-     EUSCI_B_CTLW0_SSEL__SMCLK,              // SMCLK Clock Source
-     3000,                                   // SMCLK = 3kHz
-     EUSCI_B_I2C_SET_DATA_RATE_100KBPS,      // Desired I2C Clock of 100khz
-     0,                                      // No byte counter threshold
-     EUSCI_B_CTLW1_ASTP_0                    // No Autostop
-};
 
 void main(void)
 {
@@ -43,7 +21,6 @@ void main(void)
     I2C_enable(I2C_MODULE);                         // Enable Module
 
 
-
     //THIS SECTION IS FOR TESTING I2C FUNCTIONALITY WITH THE INA219
 
     uint32_t NUM_TX_BYTES = 3;
@@ -51,7 +28,7 @@ void main(void)
 
     uint8_t configReg = 0x00;
     uint8_t calibReg = 0x05;
-    uint8_t resetData[3] = {configReg, 0x80, 0x00};
+    uint8_t resetData[3] = {configReg, 0x39, 0x9F};
     uint8_t calibData[3] = {calibReg, 0xAA, 0xAA};
 
     uint8_t RXData[2] = {0, 0};
@@ -59,6 +36,8 @@ void main(void)
 
     // Reset all INA219 Registers
     I2C_send(I2C_MODULE, resetData, NUM_TX_BYTES);
+    __delay_cycles(500000);
+    I2C_receive(I2C_MODULE, RXData, NUM_RX_BYTES);
 
     // Read calibration register to verify it has been reset
     I2C_send(I2C_MODULE, &calibReg, 1);
