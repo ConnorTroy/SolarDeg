@@ -24,4 +24,17 @@
 		<nature>org.eclipse.cdt.core.ccnature</nature>
 		<nature>org.eclipse.cdt.managedbuilder.core.ScannerConfigNature</nature>
 	</natures>
+	<linkedResources>
+		<link>
+			<name>drivers</name>
+			<type>2</type>
+			<locationURI>drivers</locationURI>
+		</link>
+	</linkedResources>
+	<variableList>
+		<variable>
+			<name>drivers</name>
+			<value>$%7BWORKSPACE_LOC%7D/drivers</value>
+		</variable>
+	</variableList>
 </projectDescription>

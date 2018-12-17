@@ -1,4 +1,4 @@
-#include "drivers/driverConfig.h"
+#include "driverConfig.h"
 
 /**
  * main.c
@@ -28,23 +28,34 @@ void main(void)
 
     uint8_t configReg = 0x00;
     uint8_t calibReg = 0x05;
-    uint8_t resetData[3] = {configReg, 0x39, 0x9F};
-    uint8_t calibData[3] = {calibReg, 0xAA, 0xAA};
+//    uint8_t resetData[3] = {configReg, 0x39, 0x9F};
+    uint8_t resetData[3] = {configReg, 0x80, 0x00};
+    uint8_t calibData[3] = {calibReg, 0xAA, 0x00};
 
     uint8_t RXData[2] = {0, 0};
 
 
+    I2C_send(I2C_MODULE, &configReg, 1);
+//    __delay_cycles(800000);
+    I2C_receive(I2C_MODULE, RXData, NUM_RX_BYTES);
+//    __delay_cycles(800000);
+
+
     // Reset all INA219 Registers
     I2C_send(I2C_MODULE, resetData, NUM_TX_BYTES);
-    __delay_cycles(500000);
+//    __delay_cycles(800000);
     I2C_receive(I2C_MODULE, RXData, NUM_RX_BYTES);
+//    __delay_cycles(800000);
 
     // Read calibration register to verify it has been reset
     I2C_send(I2C_MODULE, &calibReg, 1);
+//    __delay_cycles(800000);
     I2C_receive(I2C_MODULE, RXData, NUM_RX_BYTES);
+//    __delay_cycles(800000);
 
     // Set calibration register to 0xAAAA
     I2C_send(I2C_MODULE, calibData, NUM_TX_BYTES);
+//    __delay_cycles(800000);
     // Read calibration register to verify it has been set to 0xAAAA
     I2C_receive(I2C_MODULE, RXData, NUM_RX_BYTES);
 
