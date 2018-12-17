@@ -8,8 +8,8 @@
  */
 
 
-#ifndef DRIVERS_DRIVERCONFIG_H_
-#define DRIVERS_DRIVERCONFIG_H_
+#ifndef DRIVERCONFIG_H_
+#define DRIVERCONFIG_H_
 
 
 
@@ -50,4 +50,4 @@ const INA219 powerSensorConfig =
 };
 
 
-#endif /* DRIVERS_DRIVERCONFIG_H_ */
+#endif /* DRIVERCONFIG_H_ */

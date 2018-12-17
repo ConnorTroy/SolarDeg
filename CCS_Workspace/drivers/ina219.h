@@ -7,8 +7,8 @@
  *  This driver handles communication with the INA219 voltage/current/power sensor
  */
 
-#ifndef _INA219_H_
-#define _INA219_H_
+#ifndef INA219_H_
+#define INA219_H_
 
 #include <stdint.h>
 #include <msp.h>
@@ -140,4 +140,4 @@ uint16_t INA219_readCalibrationReg(INA219* sensor);
 // Decodes Register Configuration and stores values in sensor struct
 void INA219_decodeConfiguration(INA219* sensor, uint16_t configParameters);
 
-#endif /* _INA219_H_ */
+#endif /* INA219_H_ */
