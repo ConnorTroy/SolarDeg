@@ -7,8 +7,8 @@
  *  This driver handles basic i2c sends and receives
  */
 
-#ifndef DRIVERS_I2C_H_
-#define DRIVERS_I2C_H_
+#ifndef I2C_H_
+#define I2C_H_
 
 #include <stdint.h>
 #include <msp.h>
@@ -49,4 +49,4 @@ void I2C_send(EUSCI_B_Type * module, uint8_t *tx_data, uint32_t num_bytes);
 //Reads data from i2c line given a place to store it and number of bytes to receive
 void I2C_receive(EUSCI_B_Type * module, uint8_t *rx_data, uint32_t num_bytes);
 
-#endif /* DRIVERS_I2C_H_ */
+#endif /* I2C_H_ */
