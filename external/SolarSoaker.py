@@ -6,18 +6,14 @@ import argparse as ap
 from datetime import datetime
 import time
 import matplotlib.pyplot as plt
+import numpy as np
 
-attempt_threshold = 0
+attempt_threshold = 20
 # port = 'COM3'
 
 parser = ap.ArgumentParser(description="Solar Soaker v0.1")
 parser.add_argument('port', type=str, help="USB port to connect ('COM3', '/dev/ttyUSB3', etc)")
 
-
-
-
-# while(ser.is_open):
-#     print(ser.readline().decode("utf-8"), end='')
 
 def get_args():
     if len(argv[1:]) == 0:
@@ -44,7 +40,7 @@ def serial_connect(port):
             try:
                 ser.open()
             except:
-                print( f"\rAttempt {count}/{attempt_threshold} ", end='')
+                print( f"  Attempt {count}/{attempt_threshold}", end='\r')
                 time.sleep(5)
 
     if ser.is_open:
@@ -61,6 +57,11 @@ def main():
     ser = serial_connect(args.port)
     ser.close()
 
+    while(ser.is_open):
+        print(ser.readline().decode("utf-8"), end='')
+
+
+
 
     data = open("sample_data.txt", 'r')
 
@@ -71,18 +72,21 @@ def main():
     while data.readline().find("Data - ") == -1:
         next
 
-    I_data, V_data = [], []
+    V_data, I_data = [],[]
 
     for line in data:
-        data_unpacked = line.split()
-        I_data.append(data_unpacked[0])
-        V_data.append(data_unpacked[1])
+        # IV_data.append(line.split())
+        data_unpack = line.split()
+        V_data.append(float(data_unpack[0]))
+        I_data.append(float(data_unpack[1]))
 
     plt.figure()
-    plt.title(f"Cell {cell} {'-':^6} Active Area {active_area} {'-':^6} {time_stamp}")
+    plt.title(f"Cell {cell} {'-':^8} Active Area {active_area} {'-':^8} {time_stamp}")
     plt.ylabel("Current Output (A)")
     plt.xlabel("Applied Voltage (V)")
     plt.plot(V_data, I_data)
-    # plt.show()
+    plt.show()
 
 main()
+
+exit()
