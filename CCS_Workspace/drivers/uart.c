@@ -91,6 +91,8 @@ Enables the EUSCI Module
 void uart_enable(EUSCI_A_Type * module)
 {
     EUSCI_A_CMSIS(module)->CTLW0 &= ~EUSCI_B_CTLW0_SWRST;
+    EUSCI_A_CMSIS(module) -> IFG &= ~(EUSCI_A_IFG_RXIFG); // Clear receive flag
+    EUSCI_A_CMSIS(module) -> IE |= EUSCI_A_IE_RXIE; // Enable USCI_A0 Receive character Interrupt
 }
 
 
@@ -116,3 +118,18 @@ void uart_send_multple(EUSCI_A_Type * module, uint8_t * data, uint32_t num_bytes
         uart_send_byte( module, data[count++] );
     }
 }
+
+
+/*
+ * Receive single byte and place in multibyte receive buffer
+ */
+void uart_receive(EUSCI_A_Type * module, uint8_t * buffer, uint32_t bufferSize)
+{
+    int i;
+    for (i = 0; i < bufferSize - 1; i++){
+        buffer[i] = buffer [i+1];
+    }
+    buffer[bufferSize-1] = EUSCI_A_CMSIS(module) -> RXBUF;
+}
+
+
