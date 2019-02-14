@@ -31,22 +31,21 @@ typedef struct
     uint_fast8_t autoSTOPGeneration;    //sets up the STOP condition generation
 } I2C_Config;
 
-#define EUSCI_A_CMSIS(x) ((EUSCI_A_Type *) x)
 #define EUSCI_B_CMSIS(x) ((EUSCI_B_Type *) x)
 
-//Initializes I2C as master and with parameters set in I2C_Config
+// Initializes I2C as master and with parameters set in I2C_Config
 void I2C_init(EUSCI_B_Type * module, const I2C_Config *config);
 
-//Enables the EUSCI Module
+// Enables the EUSCI Module
 void I2C_enable(EUSCI_B_Type * module);
 
-//Sets new I2C address for use with given module
+// Sets new I2C address for use with given module
 void I2C_setSlaveAddress(EUSCI_B_Type * module, uint8_t address);
 
-//Writes data to i2c line given data location and number of bytes
+// Writes data to i2c line given data location and number of bytes
 void I2C_send(EUSCI_B_Type * module, uint8_t *tx_data, uint32_t num_bytes);
 
-//Reads data from i2c line given a place to store it and number of bytes to receive
+// Reads data from i2c line given a place to store it and number of bytes to receive
 void I2C_receive(EUSCI_B_Type * module, uint8_t *rx_data, uint32_t num_bytes);
 
 #endif /* I2C_H_ */

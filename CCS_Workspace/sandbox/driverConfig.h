@@ -14,7 +14,12 @@
 
 
 #include "msp.h"
+
+/* Protocol Drivers */
 #include "i2c.h"
+#include "uart.h"
+
+/* Device Drivers */
 #include "ina219.h"
 
 #include <stdint.h>
@@ -26,15 +31,30 @@
 #define INA219_ADDR             0x40
 
 #define I2C_MODULE              EUSCI_B1
+#define UART_MODULE             EUSCI_A0
 
 /* I2C Master Configuration Parameter */
 const I2C_Config i2cConfig =
 {
-     EUSCI_B_CTLW0_SSEL__SMCLK,              // SMCLK Clock Source
-     100000,                                   // SMCLK = 1MHz
-     EUSCI_B_I2C_SET_DATA_RATE_100KBPS,      // Desired I2C Clock of 100khz
-     0,                                      // No byte counter threshold
-     EUSCI_B_CTLW1_ASTP_0                    // No Autostop
+    EUSCI_B_CTLW0_SSEL__SMCLK,                    // SMCLK Clock Source
+     100000,                                      // SMCLK = 1MHz
+     EUSCI_B_I2C_SET_DATA_RATE_100KBPS,           // Desired I2C Clock of 100khz
+     0,                                           // No byte counter threshold
+     EUSCI_B_CTLW1_ASTP_0                         // No Autostop
+};
+
+/* UART Configuration Parameter */
+const UART_Config uartConfig =
+{
+     EUSCI_A_CTLW0_SSEL__SMCLK,                   // SMCLK Clock Source
+     19,                                          // Clock Prescalar
+     8,                                           // UCxBRF = 8
+     0,                                           // UCxBRS = 0
+     UART_NO_PARITY,                              // Parity Bit Type
+     UART_LSB_FIRST,                              // MSB / LSB First
+     UART_ONE_STOP_BIT,                           // Num Stop Bits
+     EUSCI_A_CTLW0_MODE_0,                        // eUSCI_A UART Mode
+     UART_OVERSAMPLING                            // UART Sampling Type
 };
 
 /* INA219 Configuration Parameter */

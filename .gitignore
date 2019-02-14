@@ -7,3 +7,4 @@ Release/
 .launches/
 .jxbrowser-data/
 RemoteSystemsTempFiles/
+*.json
