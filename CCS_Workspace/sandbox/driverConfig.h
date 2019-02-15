@@ -15,9 +15,6 @@
 
 #include "msp.h"
 
-#include <stdint.h>
-#include <stdio.h>
-
 /* Protocol Drivers */
 #include "i2c.h"
 #include "uart.h"
@@ -25,9 +22,8 @@
 /* Device Drivers */
 #include "ina219.h"
 
-/* Source Files */
-#include "source/ext_connect.h"
-
+#include <stdint.h>
+#include <string.h>
 
 #define TMP_ADDR                0x48
 #define ACC_ADDR_1              0x68
@@ -37,9 +33,8 @@
 #define I2C_MODULE              EUSCI_B1
 #define UART_MODULE             EUSCI_A0
 
-
-#define UART_RX_BUF_LEN         15
-uint8_t UART_RX_BUF_MULTIBYTE[UART_RX_BUF_LEN];
+const uint32_t  UART_RX_BUF_LEN = 10;
+      uint8_t   UART_RX_BUF_MULTIBYTE[UART_RX_BUF_LEN];
 
 /* I2C Master Configuration Parameter */
 const I2C_Config i2cConfig =
