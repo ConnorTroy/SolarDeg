@@ -49,7 +49,7 @@ void uart_enable(EUSCI_A_Type * module);
 void uart_send_byte(EUSCI_A_Type * module, uint8_t data);
 
 // Transmit String (or similar) over UART
-void uart_send_multple(EUSCI_A_Type * module, uint8_t * data, uint32_t num_bytes);
+void uart_send_multiple(EUSCI_A_Type * module, uint8_t * data, uint32_t num_bytes);
 
 // Receive single byte and place in multibyte receive buffer
 void uart_receive(EUSCI_A_Type * module, uint8_t * buffer, uint32_t bufferSize);
