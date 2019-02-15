@@ -7,7 +7,6 @@
  * This driver handles UART communication
  */
 
-#include "msp.h"
 #include "uart.h"
 
 /*
@@ -90,9 +89,9 @@ Enables the EUSCI Module
 */
 void uart_enable(EUSCI_A_Type * module)
 {
-    EUSCI_A_CMSIS(module)->CTLW0 &= ~EUSCI_B_CTLW0_SWRST;
-    EUSCI_A_CMSIS(module) -> IFG &= ~(EUSCI_A_IFG_RXIFG); // Clear receive flag
-    EUSCI_A_CMSIS(module) -> IE |= EUSCI_A_IE_RXIE; // Enable USCI_A0 Receive character Interrupt
+    EUSCI_A_CMSIS(module) -> CTLW0 &= ~EUSCI_B_CTLW0_SWRST;
+    EUSCI_A_CMSIS(module) -> IFG &= ~(EUSCI_A_IFG_RXIFG); // Clear Receive flag
+    EUSCI_A_CMSIS(module) -> IE |= EUSCI_A_IE_RXIE; // Enable USCI_A0 Receive Interrupt
 }
 
 
@@ -110,12 +109,20 @@ void uart_send_byte(EUSCI_A_Type * module, uint8_t data)
 /*
 Transmit String (or similar) over UART
 */
-void uart_send_multple(EUSCI_A_Type * module, uint8_t * data, uint32_t num_bytes)
+void uart_send_multiple(EUSCI_A_Type * module, uint8_t * data, uint32_t num_bytes)
 {
     uint32_t count = 0;
     while (count < num_bytes)
     {
-        uart_send_byte( module, data[count++] );
+        if (data[count] != '\0')
+        {
+            uart_send_byte( module, data[count++] );
+        }
+        else
+        {
+            uart_send_byte( module, '\n' );
+            count++;
+        }
     }
 }
 
