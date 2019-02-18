@@ -70,7 +70,7 @@ def serial_connect(port):
         else:
             exit( f"Connected on port '{port}' but device is not Solar Soaker, exiting" )
     else:
-        exit( f"Could not connect on port '{port}'" )
+        exit( "Connection Timeout" )
     return ser
 
 

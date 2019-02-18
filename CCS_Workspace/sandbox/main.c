@@ -72,8 +72,8 @@ void main(void)
     for (i = 0; i < sizeof(sample_vData) / sizeof(float); i++)
     {
         char* line = "                        \n";
-        sprintf(&line[0], "%f", sample_vData[i]);
-        sprintf(&line[7], "%f", sample_iData[i]);
+        ftoa(sample_vData[i], &line[0], 2)
+        ftoa(sample_iData[i], &line[5], 3)
         uart_send_multiple( UART_MODULE, (uint8_t*)line, sizeof(line));
     }
     ext_send_end( UART_MODULE );

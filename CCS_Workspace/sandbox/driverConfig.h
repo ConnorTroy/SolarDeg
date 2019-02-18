@@ -27,6 +27,7 @@
 
 /* Source Files */
 #include "source/ext_connect.h"
+#include "source/helpers.h"
 
 
 #define TMP_ADDR                0x48
