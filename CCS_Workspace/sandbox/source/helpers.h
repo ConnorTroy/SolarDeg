@@ -5,8 +5,8 @@
  *      Author: Connor Troy
  */
 
-#ifndef SOURCE_EXT_CONNECT_H_
-#define SOURCE_EXT_CONNECT_H_
+#ifndef SOURCE_HELPERS_H_
+#define SOURCE_HELPERS_H_
 
 
 #include <math.h>
@@ -24,4 +24,4 @@ int intToStr(int x, char str[], int d);
 // Converts a floating point number to string. 
 void ftoa(float n, char *res, int afterpoint);
 
-#endif /* SOURCE_EXT_HELPERS_H_ */
+#endif /* SOURCE_HELPERS_H_ */
