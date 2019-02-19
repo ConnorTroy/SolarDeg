@@ -14,10 +14,10 @@
 #include "msp.h"
 #include "uart.h"
 
-#define POLL_STR        "SOLAR_SOAKER_FW"
+#define POLL_STR        "SOLAR_SOAKER_FW\n"
 #define EXP_STR         "SS_EXTERNAL"
-#define SEND_START      "START"
-#define SEND_END        "END"
+#define SEND_START      "START\n"
+#define SEND_END        "END\n"
 
 // Check if external machine is connected
 void poll_for_ext_connect(EUSCI_A_Type * module, uint8_t * buffer, uint32_t bufferSize);

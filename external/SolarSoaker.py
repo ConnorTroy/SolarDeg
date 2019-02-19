@@ -6,7 +6,7 @@ import argparse as ap
 from datetime import datetime
 from time import sleep
 import matplotlib.pyplot as plt
-import numpy as np
+import multiprocessing as mp
 from collections import namedtuple
 
 transfer_data = namedtuple('transfer_data', 'timestamp cell active_area V I')
@@ -17,7 +17,7 @@ expected_receive_on_connect = b'SOLAR_SOAKER_FW\n'
 send_on_connect = b'SS_EXTERNAL\x00'
 
 start_str = b'START\n'
-end_str =   b'END\n'
+end_str =   'END'
 # port = 'COM3'
 
 parser = ap.ArgumentParser(description="Solar Soaker v0.1")
@@ -37,8 +37,7 @@ def get_timestamp():
 
 
 def check_device_is_SS(ser):
-    ser.reset_input_buffer()
-    sleep(1)
+    ser.readline()
 
     is_SS = ser.readline() == expected_receive_on_connect
     if is_SS:
@@ -66,7 +65,7 @@ def serial_connect(port):
 
     if ser.is_open:
         if check_device_is_SS(ser):
-            print( f"Connected on port '{port}'  {get_timestamp()}" )
+            print( f"Connected on port '{port}'      {get_timestamp()}" )
         else:
             exit( f"Connected on port '{port}' but device is not Solar Soaker, exiting" )
     else:
@@ -76,7 +75,7 @@ def serial_connect(port):
 
 def plot_received_data(data):
     plt.figure()
-    plt.title(f"Cell {data.cell} {'-':^8} Active Area {data.active_area} {'-':^8} {data.time_stamp}")
+    plt.title(f"Cell {data.cell} {'-':^8} Active Area {data.active_area} {'-':^8} {data.timestamp}")
     plt.ylabel("Current Output (A)")
     plt.xlabel("Applied Voltage (V)")
     plt.plot(data.V, data.I)
@@ -85,18 +84,24 @@ def plot_received_data(data):
 
 def data_transfer(ser):
     timestamp   = get_timestamp()
-    cell        = ser.readline()
-    active_area = ser.readline()
+    print(f"Data Transfer Started         {timestamp}")
+
+    cell        = ser.readline().decode('utf-8').strip('\n')
+    active_area = ser.readline().decode('utf-8').strip('\n')
 
     ser.readline()
-    line = ser.readline()
+    line = ser.readline().decode('utf-8').strip('\n')
     V_data, I_data = [],[]
+
     while line != end_str:
-        data_unpack = line.decode('utf-8').split()
+        data_unpack = line.split()
         V_data.append(float(data_unpack[0]))
         I_data.append(float(data_unpack[1]))
 
+        line = ser.readline().decode('utf-8').strip('\n')
+
     data = transfer_data(timestamp, cell, active_area, V_data, I_data)
+    print("Data Transfer Complete")
     plot_received_data(data)
 
 
@@ -105,41 +110,12 @@ def main():
 
     print("\nSolar Soaker ☀  v0.1\n")
     ser = serial_connect(args.port)
-    # ser.close()
-
-    while(ser.is_open):
-        print(ser.readline())
-
+    
     while(ser.is_open):
         line = ser.readline()
         if line == start_str:
             data_transfer(ser)
 
-
-
-    # data = open("sample_data.txt", 'r')
-
-    # time_stamp  = data.readline()
-    # cell        = data.readline().split()[1]
-    # active_area = data.readline().split()[1]
-
-    # while data.readline().find("Data - ") == -1:
-    #     next
-
-    # V_data, I_data = [],[]
-
-    # for line in data:
-    #     # IV_data.append(line.split())
-    #     data_unpack = line.split()
-    #     V_data.append(float(data_unpack[0]))
-    #     I_data.append(float(data_unpack[1]))
-
-    # plt.figure()
-    # plt.title(f"Cell {cell} {'-':^8} Active Area {active_area} {'-':^8} {time_stamp}")
-    # plt.ylabel("Current Output (A)")
-    # plt.xlabel("Applied Voltage (V)")
-    # plt.plot(V_data, I_data)
-    # plt.show()
 
 main()
 

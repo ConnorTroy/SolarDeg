@@ -120,7 +120,7 @@ void uart_send_multiple(EUSCI_A_Type * module, uint8_t * data, uint32_t num_byte
         }
         else
         {
-            uart_send_byte( module, '\n' );
+//            uart_send_byte( module, ' ' );
             count++;
         }
     }
