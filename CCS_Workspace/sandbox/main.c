@@ -11,7 +11,7 @@
  *
  */
 
-#define TIMER_MODULE    TIMER_A2
+#define TIMER_MODULE    TIMER_A0
 #define PWM_FREQ        1           // Hz
 #define PWM_DUTY        50          // %
 
@@ -39,29 +39,39 @@ void main(void)
     NVIC_EnableIRQ(PORT1_IRQn);     // Enable interrupts for button press
 
     // Timer A0 Config
-    TIMER_A2->R = 0; // Reset Count
+    TIMER_A0->R = 0; // Reset Count
 
     float duty_cycle = (float) PWM_DUTY / 100;
-    uint16_t period_long = 0xFFFF;
+    uint16_t period_long = 0x8000;
     uint16_t period_short = period_long * duty_cycle;
 
-    TIMER_A2->CCR[0] = period_long;
-    TIMER_A2->CCR[1] = period_short;
+    TIMER_A0->CCR[0] = period_long;
+    TIMER_A0->CCR[1] = period_short;
 
-    TIMER_A2->EX0 = 0b011;
-//    TIMER_A2->CCTL[0] = TIMER_A_CCTLN_CCIS__VCC | TIMER_A_CCTLN_SCCI;
-    TIMER_A2->CCTL[1] = TIMER_A_CCTLN_CCIE;
+    TIMER_A0->EX0 = 0b011;
+//    TIMER_A0->CCTL[0] = TIMER_A_CCTLN_CCIS__VCC | TIMER_A_CCTLN_SCCI;
+    TIMER_A0->CCTL[1] = TIMER_A_CCTLN_OUTMOD_7;
+    TIMER_A0->CTL = TIMER_A_CTL_SSEL__SMCLK | TIMER_A_CTL_MC__UP | TIMER_A_CTL_ID_3;
 
-    TIMER_A2->CTL = TIMER_A_CTL_SSEL__SMCLK | TIMER_A_CTL_MC__UP | TIMER_A_CTL_IE | TIMER_A_CTL_ID_3;
-//    TIMER_A2->CTL = TIMER_A_CTL_SSEL__SMCLK | TIMER_A_CTL_MC__UP | TIMER_A_CTL_ID_3;
+    TIMER
+    TIMER_A1->
 
-    NVIC_EnableIRQ(TA2_N_IRQn);
+//    NVIC_EnableIRQ(TA0_N_IRQn);
 
 	while(1)
 	{
-//        uint16_t out = (BIT0 & ((TIMER_A2->CCTL[1] & TIMER_A_CCTLN_OUT) != 0));
-//        P1->OUT |= out;
-
+//        uint16_t out = (BIT0 & ((TIMER_A0->CCTL[1] & TIMER_A_CCTLN_OUT) != 0));
+////        P1->OUT |= out;
+//        if (TIMER_A0->CCTL[1] & TIMER_A_CCTLN_OUT)
+//        {
+//            int i;
+//            i = 0;
+//        }
+//        else
+//        {
+//            int i;
+//            i = 0;
+//        }
 	}
 
 }
@@ -82,18 +92,9 @@ void PORT1_IRQHandler(void)
     P1->IE = IE_store;
 }
 
-void TA2_N_IRQHandler(void)
+void TA0_N_IRQHandler(void)
 {
-//    TIMER_A2->CTL &= ~(TIMER_A_CTL_IFG);
-    if (TIMER_A2->IV & 0x02)
-    {
-        P1->OUT &= ~BIT0;
-    }
-    else
-    {
-        P1->OUT |= BIT0;
-    }
-    TIMER_A2->CTL &= ~(TIMER_A_CTL_IFG);
-
+    TIMER_A0->CTL &= ~(TIMER_A_CTL_IFG);
+    P1->OUT ^= BIT0;
     return;
 }
