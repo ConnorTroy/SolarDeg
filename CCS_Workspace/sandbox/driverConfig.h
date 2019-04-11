@@ -46,10 +46,10 @@ uint8_t UART_RX_BUF_MULTIBYTE[UART_RX_BUF_LEN];
 const I2C_Config i2cConfig =
 {
     EUSCI_B_CTLW0_SSEL__SMCLK,                    // SMCLK Clock Source
-     100000,                                      // SMCLK = 1MHz
-     EUSCI_B_I2C_SET_DATA_RATE_100KBPS,           // Desired I2C Clock of 100khz
-     0,                                           // No byte counter threshold
-     EUSCI_B_CTLW1_ASTP_0                         // No Autostop
+    3000000,                                      // SMCLK = 1MHz
+    EUSCI_B_I2C_SET_DATA_RATE_400KBPS,           // Desired I2C Clock of 100khz
+    0,                                           // No byte counter threshold
+    EUSCI_B_CTLW1_ASTP_0                         // No Autostop
 };
 
 /* UART Configuration Parameter */
@@ -67,7 +67,7 @@ const UART_Config uartConfig =
 };
 
 /* INA219 Configuration Parameter */
-const INA219 powerSensorConfig =
+INA219 powerSensorConfig =
 {
      I2C_MODULE,
      INA219_ADDR_1,

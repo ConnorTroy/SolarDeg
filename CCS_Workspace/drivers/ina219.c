@@ -26,7 +26,7 @@ void INA219_generalInit(INA219** sensorList, uint8_t numSensors)
         // Separate config data into 2 bytes
         uint16_t configuration = sensor->busVoltageRange + sensor->productGain + sensor->busADCResolution + sensor->shuntADCResolution + sensor->operatingMode;
 
-        uint8_t MSB = (uint8_t) configuration << 8;
+        uint8_t MSB = (uint8_t) (configuration >> 8);
         uint8_t LSB = (uint8_t) configuration;
 
         // Create transmit array
@@ -48,7 +48,7 @@ void INA219_reset(INA219* sensor)
     I2C_setSlaveAddress(sensor->module, sensor->address);
 
     // Separate data into 2 bytes
-    uint8_t MSB = (uint8_t) INA219_CONFIG_RST << 8;
+    uint8_t MSB = (uint8_t) (INA219_CONFIG_RST >> 8);
     uint8_t LSB = (uint8_t) INA219_CONFIG_RST;
 
     // Create transmit array
@@ -72,7 +72,7 @@ void INA219_updateConfig(INA219* sensor, uint16_t configParameters)
     I2C_setSlaveAddress(sensor->module, sensor->address);
 
     // Separate new config data into 2 bytes
-    uint8_t MSB = (uint8_t) configParameters << 8;
+    uint8_t MSB = (uint8_t) (configParameters >> 8);
     uint8_t LSB = (uint8_t) configParameters;
 
     // Create transmit array
@@ -96,7 +96,7 @@ void INA219_writeCalibrationReg(INA219* sensor, uint16_t value)
     I2C_setSlaveAddress(sensor->module, sensor->address);
 
     // Separate new config data into 2 bytes
-    uint8_t MSB = (uint8_t) value << 8;
+    uint8_t MSB = (uint8_t) (value >> 8);
     uint8_t LSB = (uint8_t) value;
 
     // Create transmit array

@@ -33,6 +33,10 @@ typedef struct
 
 #define EUSCI_B_CMSIS(x) ((EUSCI_B_Type *) x)
 
+static uint8_t I2C_TXData[3] = {0,0,0};
+static uint8_t I2C_RXData[2] = {0,0};
+static int I2C_TX_CNT, I2C_RX_CNT;
+
 // Initializes I2C as master and with parameters set in I2C_Config
 void I2C_init(EUSCI_B_Type * module, const I2C_Config *config);
 

@@ -48,14 +48,30 @@ void main(void)
 
     memset(UART_RX_BUF_MULTIBYTE, '-', UART_RX_BUF_LEN);
 
-    poll_for_ext_connect( UART_MODULE, UART_RX_BUF_MULTIBYTE, UART_RX_BUF_LEN );
+//    poll_for_ext_connect( UART_MODULE, UART_RX_BUF_MULTIBYTE, UART_RX_BUF_LEN );
     P1->OUT &= ~BIT0;
 
     // Handle interrupts for 1.1 and 1.4
-    P1->IES = BIT1 + BIT4;
+    P1->IES = BIT1;
     P1->IFG = 0;
-    P1->IE  = BIT1 + BIT4;
+    P1->IE  = BIT1;
     NVIC_EnableIRQ(PORT1_IRQn);     // Enable interrupts for button press
+
+
+    /*
+     * ===================================================================================================
+     *                                                  I2C
+     * ===================================================================================================
+     */
+
+    I2C_init(I2C_MODULE, &i2cConfig);
+    I2C_enable(I2C_MODULE);
+    INA219_reset(&powerSensorConfig);
+    uint16_t reg = INA219_readCalibrationReg(&powerSensorConfig);
+
+
+
+
 
     while(1)
     {
@@ -77,10 +93,10 @@ void main(void)
 //        __delay_cycles(100000);
     }
 
-    if (IFG & BIT4)
-    {
-        P1->OUT ^= BIT0;
-    }
+//    if (IFG & BIT4)
+//    {
+//        P1->OUT ^= BIT0;
+//    }
 
 }
 
@@ -94,6 +110,7 @@ void EUSCIA0_IRQHandler(void)
         EUSCI_A0 -> IFG &= ~(EUSCI_A_IFG_RXIFG);
         uart_receive(EUSCI_A0, UART_RX_BUF_MULTIBYTE, UART_RX_BUF_LEN);
     }
+}
 
 void TA0_N_IRQHandler(void)
 {
