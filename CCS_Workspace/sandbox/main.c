@@ -12,6 +12,10 @@
  *
  */
 
+#define TIMER_MODULE    TIMER_A0
+#define PWM_FREQ        1           // Hz
+#define PWM_DUTY        50          // %
+
 
 void main(void)
 {
@@ -73,6 +77,10 @@ void main(void)
 //        __delay_cycles(100000);
     }
 
+    if (IFG & BIT4)
+    {
+        P1->OUT ^= BIT0;
+    }
 
 }
 
@@ -87,6 +95,11 @@ void EUSCIA0_IRQHandler(void)
         uart_receive(EUSCI_A0, UART_RX_BUF_MULTIBYTE, UART_RX_BUF_LEN);
     }
 
+void TA0_N_IRQHandler(void)
+{
+    TIMER_A0->CTL &= ~(TIMER_A_CTL_IFG);
+    P1->OUT ^= BIT0;
+    return;
 }
 
 void PORT1_IRQHandler(void)
