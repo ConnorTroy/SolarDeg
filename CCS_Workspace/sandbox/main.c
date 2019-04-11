@@ -11,56 +11,90 @@
  *
  */
 
+#define TIMER_MODULE    TIMER_A0
+#define PWM_FREQ        1           // Hz
+#define PWM_DUTY        50          // %
+
 
 void main(void)
 {
     WDT_A->CTL = WDT_A_CTL_PW | WDT_A_CTL_HOLD;		// stop watchdog timer
 
-	I2C_init(I2C_MODULE, &i2cConfig);               // Initialize I2C
-    I2C_setSlaveAddress(I2C_MODULE, INA219_ADDR);   // Set slave address
-    I2C_enable(I2C_MODULE);                         // Enable Module
+    // configure port 1, pin 0 (p1.0) as an output pin.
+    P1->SEL0 &= ~BIT0;
+    P1->SEL1 &= ~BIT0;
+    P1->DIR |= BIT0;
+    P1->OUT |= BIT0;
+
+    // configure port 1, pin 1 (p1.4) as an input pin.
+    P1->SEL0 &= ~BIT4;
+    P1->SEL1 &= ~BIT4;
+    P1->REN  |=  BIT4;
+    P1->OUT  |=  BIT4;
+
+    // Handle interrupts for 1.4
+    P1->IES = BIT4;
+    P1->IFG = 0;
+    P1->IE  = BIT4;
+    NVIC_EnableIRQ(PORT1_IRQn);     // Enable interrupts for button press
+
+    // Timer A0 Config
+    TIMER_A0->R = 0; // Reset Count
+
+    float duty_cycle = (float) PWM_DUTY / 100;
+    uint16_t period_long = 0x8000;
+    uint16_t period_short = period_long * duty_cycle;
+
+    TIMER_A0->CCR[0] = period_long;
+    TIMER_A0->CCR[1] = period_short;
+
+    TIMER_A0->EX0 = 0b011;
+//    TIMER_A0->CCTL[0] = TIMER_A_CCTLN_CCIS__VCC | TIMER_A_CCTLN_SCCI;
+    TIMER_A0->CCTL[1] = TIMER_A_CCTLN_OUTMOD_7;
+    TIMER_A0->CTL = TIMER_A_CTL_SSEL__SMCLK | TIMER_A_CTL_MC__UP | TIMER_A_CTL_ID_3;
+
+    TIMER
+    TIMER_A1->
+
+//    NVIC_EnableIRQ(TA0_N_IRQn);
+
+	while(1)
+	{
+//        uint16_t out = (BIT0 & ((TIMER_A0->CCTL[1] & TIMER_A_CCTLN_OUT) != 0));
+////        P1->OUT |= out;
+//        if (TIMER_A0->CCTL[1] & TIMER_A_CCTLN_OUT)
+//        {
+//            int i;
+//            i = 0;
+//        }
+//        else
+//        {
+//            int i;
+//            i = 0;
+//        }
+	}
+
+}
+
+void PORT1_IRQHandler(void)
+{
+    uint8_t IFG = P1->IFG;
+    uint8_t IE_store = P1->IE;
+    P1->IFG = 0;
+    P1->IE = 0;
+
+    if (IFG & BIT4)
+    {
+        P1->OUT ^= BIT0;
+    }
 
 
-    //THIS SECTION IS FOR TESTING I2C FUNCTIONALITY WITH THE INA219
+    P1->IE = IE_store;
+}
 
-    uint32_t NUM_TX_BYTES = 3;
-    uint32_t NUM_RX_BYTES = 2;
-
-    uint8_t configReg = 0x00;
-    uint8_t calibReg = 0x05;
-//    uint8_t resetData[3] = {configReg, 0x39, 0x9F};
-    uint8_t resetData[3] = {configReg, 0x80, 0x00};
-    uint8_t calibData[3] = {calibReg, 0xAA, 0x00};
-
-    uint8_t RXData[2] = {0, 0};
-
-
-    I2C_send(I2C_MODULE, &configReg, 1);
-//    __delay_cycles(800000);
-    I2C_receive(I2C_MODULE, RXData, NUM_RX_BYTES);
-//    __delay_cycles(800000);
-
-
-    // Reset all INA219 Registers
-    I2C_send(I2C_MODULE, resetData, NUM_TX_BYTES);
-//    __delay_cycles(800000);
-    I2C_receive(I2C_MODULE, RXData, NUM_RX_BYTES);
-//    __delay_cycles(800000);
-
-    // Read calibration register to verify it has been reset
-    I2C_send(I2C_MODULE, &calibReg, 1);
-//    __delay_cycles(800000);
-    I2C_receive(I2C_MODULE, RXData, NUM_RX_BYTES);
-//    __delay_cycles(800000);
-
-    // Set calibration register to 0xAAAA
-    I2C_send(I2C_MODULE, calibData, NUM_TX_BYTES);
-//    __delay_cycles(800000);
-    // Read calibration register to verify it has been set to 0xAAAA
-    I2C_receive(I2C_MODULE, RXData, NUM_RX_BYTES);
-
-
-
-	while(1);
-
+void TA0_N_IRQHandler(void)
+{
+    TIMER_A0->CTL &= ~(TIMER_A_CTL_IFG);
+    P1->OUT ^= BIT0;
+    return;
 }
