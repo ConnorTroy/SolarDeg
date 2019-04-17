@@ -65,9 +65,21 @@ void main(void)
      */
 
     I2C_init(I2C_MODULE, &i2cConfig);
+    I2C_setSlaveAddress(I2C_MODULE, 0x40);
     I2C_enable(I2C_MODULE);
-    INA219_reset(&powerSensorConfig);
-    uint16_t reg = INA219_readCalibrationReg(&powerSensorConfig);
+//    INA219_reset(&powerSensorConfig);
+//    uint16_t reg = INA219_readConfigReg(&powerSensorConfig);
+
+    uint32_t NUM_RX_BYTES = 2;
+    uint8_t RXData[2] = {0, 0};
+
+
+    // Reset all INA219 Registers
+//    I2C_send(I2C_MODULE, resetData, NUM_TX_BYTES);
+
+    // Read calibration register to verify it has been reset
+//    I2C_send(I2C_MODULE, &calibReg, 1);
+    I2C_receive(I2C_MODULE, RXData, NUM_RX_BYTES);
 
 
 
@@ -99,6 +111,29 @@ void main(void)
 //    }
 
 }
+
+//void EUCIB2_IRQHandler(void)
+//{
+//    uint32_t status = EUSCI_B2 -> IFG;
+//
+//    if (status & EUSCI_B_IFG_TXIFG)
+//    {
+//        EUSCI_B2 -> TXBUF = (uint8_t) *I2C_TXData++;
+//        I2C_TX_CNT++;
+//    }
+//    if (status & EUSCI_B_IFG_RXIFG)
+//    {
+//
+//    }
+//    if (status & EUSCI_B_IFG_NACKIFG)
+//    {
+//        EUSCI_B_CMSIS(module)->IFG &= ~(EUSCI_B_IFG_NACKIFG);
+//        EUSCI_B_CMSIS(module)->CTLW0 |= EUSCI_B_CTLW0_TR + EUSCI_B_CTLW0_TXSTT;
+//        I2C_TXData -= I2C_TX_CNT;
+//        counter = 0;
+//    }
+//
+//}
 
 // Inputs UART Receive data to UART Buffer
 void EUSCIA0_IRQHandler(void)

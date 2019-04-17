@@ -103,14 +103,11 @@ void I2C_send(EUSCI_B_Type * module, uint8_t *tx_data, uint32_t num_bytes)
     // Clear any existing interrupt flag
     EUSCI_B_CMSIS(module)->IFG &= ~EUSCI_B_IFG_TXIFG0;
 
-    // Wait until ready to write
-    while (EUSCI_B_CMSIS(module)->STATW & EUSCI_B_STATW_BBUSY);
-
     // Set to transmit mode and initiate start condition
     EUSCI_B_CMSIS(module)->CTLW0 |= EUSCI_B_CTLW0_TR + EUSCI_B_CTLW0_TXSTT;
 
     //Poll for transmit interrupt flag and start condition flag.
-    while ((EUSCI_B_CMSIS(module)->CTLW0 & EUSCI_B_CTLW0_TXSTT) || !(EUSCI_B_CMSIS(module)->IFG & EUSCI_B_IFG_TXIFG0));
+    while ((EUSCI_B_CMSIS(module)->CTLW0 & EUSCI_B_CTLW0_TXSTT) && !(EUSCI_B_CMSIS(module)->IFG & EUSCI_B_IFG_TXIFG0));
 
     uint32_t counter = 0;
     //Iterate through data and write to TXBUF

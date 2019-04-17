@@ -46,8 +46,8 @@ uint8_t UART_RX_BUF_MULTIBYTE[UART_RX_BUF_LEN];
 const I2C_Config i2cConfig =
 {
     EUSCI_B_CTLW0_SSEL__SMCLK,                    // SMCLK Clock Source
-    3000000,                                      // SMCLK = 1MHz
-    EUSCI_B_I2C_SET_DATA_RATE_400KBPS,           // Desired I2C Clock of 100khz
+    32,                                      // SMCLK = 1MHz
+    1,           // Desired I2C Clock of 100khz
     0,                                           // No byte counter threshold
     EUSCI_B_CTLW1_ASTP_0                         // No Autostop
 };
