@@ -57,6 +57,7 @@ void main(void)
  */
 
     I2C_init(I2C_MODULE, &i2cConfig);
+    I2C_setSlaveAddress(I2C_MODULE, 0x40);
     I2C_enable(I2C_MODULE);
     
 //    INA219_updateConfig(&powerSensorConfig, 0x0FFF);
