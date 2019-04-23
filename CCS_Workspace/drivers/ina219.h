@@ -102,6 +102,7 @@ typedef struct
     uint16_t busADCResolution;
     uint16_t shuntADCResolution;
     uint16_t operatingMode;
+    float    max_current;
 } INA219;
 
 //static uint8_t Tx_Data[3] = {0,0,0};
@@ -126,18 +127,20 @@ uint16_t INA219_readConfigReg(INA219* sensor);
 float INA219_readShuntVoltage(INA219* sensor);
 
 // Returns INA219 Bus Voltage in V
-int INA219_readBusVoltage(INA219* sensor);
+float INA219_readBusVoltage(INA219* sensor);
 
 // Returns INA219 Power in W
-int INA219_readPower(INA219* sensor);
+float INA219_readPower(INA219* sensor);
 
 // Returns INA219 Current in A
-int INA219_readCurrent(INA219* sensor);
+float INA219_readCurrent(INA219* sensor);
 
 // Returns Configuration of the INA219 Calibration Register
 uint16_t INA219_readCalibrationReg(INA219* sensor);
 
 // Decodes Register Configuration and stores values in sensor struct
 void INA219_decodeConfiguration(INA219* sensor, uint16_t configParameters);
+
+uint16_t INA219_calculate_calibration(INA219* sensor);
 
 #endif /* INA219_H_ */

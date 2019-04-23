@@ -2,12 +2,16 @@
 
 import serial
 from sys import argv
+from os.path import isdir
+from os import mkdir
 import argparse as ap
 from datetime import datetime
 from time import sleep
 import matplotlib.pyplot as plt
 import multiprocessing as mp
 from collections import namedtuple
+
+output_dir = "ouput/"
 
 transfer_data = namedtuple('transfer_data', 'timestamp cell active_area V I')
 
@@ -79,7 +83,7 @@ def plot_received_data(data):
     plt.ylabel("Current Output (A)")
     plt.xlabel("Applied Voltage (V)")
     plt.plot(data.V, data.I)
-    plt.show()
+    plt.savefig(f"{output_dir}fig_Cell{data.cell}_AA{data.active_area}")
 
 
 def data_transfer(ser):
@@ -106,6 +110,9 @@ def data_transfer(ser):
 
 
 def main():
+    if not isdir(output_dir):
+        mkdir(output_dir)
+        
     args = get_args()
 
     print("\nSolar Soaker ☀  v0.1\n")

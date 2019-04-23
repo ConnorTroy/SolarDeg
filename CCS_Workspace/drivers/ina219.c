@@ -26,7 +26,7 @@ void INA219_generalInit(INA219** sensorList, uint8_t numSensors)
         // Separate config data into 2 bytes
         uint16_t configuration = sensor->busVoltageRange + sensor->productGain + sensor->busADCResolution + sensor->shuntADCResolution + sensor->operatingMode;
 
-        uint8_t MSB = (uint8_t) configuration << 8;
+        uint8_t MSB = (uint8_t) (configuration >> 8);
         uint8_t LSB = (uint8_t) configuration;
 
         // Create transmit array
@@ -48,7 +48,7 @@ void INA219_reset(INA219* sensor)
     I2C_setSlaveAddress(sensor->module, sensor->address);
 
     // Separate data into 2 bytes
-    uint8_t MSB = (uint8_t) INA219_CONFIG_RST << 8;
+    uint8_t MSB = (uint8_t) (INA219_CONFIG_RST >> 8);
     uint8_t LSB = (uint8_t) INA219_CONFIG_RST;
 
     // Create transmit array
@@ -72,7 +72,7 @@ void INA219_updateConfig(INA219* sensor, uint16_t configParameters)
     I2C_setSlaveAddress(sensor->module, sensor->address);
 
     // Separate new config data into 2 bytes
-    uint8_t MSB = (uint8_t) configParameters << 8;
+    uint8_t MSB = (uint8_t) (configParameters >> 8);
     uint8_t LSB = (uint8_t) configParameters;
 
     // Create transmit array
@@ -96,11 +96,11 @@ void INA219_writeCalibrationReg(INA219* sensor, uint16_t value)
     I2C_setSlaveAddress(sensor->module, sensor->address);
 
     // Separate new config data into 2 bytes
-    uint8_t MSB = (uint8_t) value << 8;
+    uint8_t MSB = (uint8_t) (value >> 8);
     uint8_t LSB = (uint8_t) value;
 
     // Create transmit array
-    uint8_t TX_Data[3] = {INA219_CONFIG_ADDR, MSB, LSB};
+    uint8_t TX_Data[3] = {INA219_CALIBRATION_ADDR, MSB, LSB};
 
     // Send transmit array
     I2C_send(sensor->module, TX_Data, 3);
@@ -170,7 +170,7 @@ float INA219_readShuntVoltage(INA219* sensor)
 }
 
 
-int INA219_readBusVoltage(INA219* sensor)
+float INA219_readBusVoltage(INA219* sensor)
 {
     /*
      * Returns INA219 Bus Voltage in V
@@ -185,14 +185,14 @@ int INA219_readBusVoltage(INA219* sensor)
     // Send register data
     I2C_send(sensor->module, &TX_Data, 1);
 
-    // Recieve data in calibration register
+    // Recieve data in register
     I2C_receive(sensor->module, RX_Data, 2);
 
     return ((RX_Data[0] << 8) + RX_Data[1]) >> 3;
 }
 
 
-int INA219_readPower(INA219* sensor)
+float INA219_readPower(INA219* sensor)
 {
     /*
      * Returns INA219 Power in W
@@ -207,14 +207,14 @@ int INA219_readPower(INA219* sensor)
     // Send register data
     I2C_send(sensor->module, &TX_Data, 1);
 
-    // Recieve data in calibration register
+    // Recieve data in register
     I2C_receive(sensor->module, RX_Data, 2);
 
     return (RX_Data[0] << 8) + RX_Data[1];
 }
 
 
-int INA219_readCurrent(INA219* sensor)
+float INA219_readCurrent(INA219* sensor)
 {
     /*
      * Returns INA219 Current in A
@@ -229,10 +229,13 @@ int INA219_readCurrent(INA219* sensor)
     // Send register data
     I2C_send(sensor->module, &TX_Data, 1);
 
-    // Recieve data in calibration register
+    // Recieve data in register
     I2C_receive(sensor->module, RX_Data, 2);
 
-    return (RX_Data[0] << 8) + RX_Data[1];
+    int val = (RX_Data[0] << 8) + RX_Data[1];
+    float ret = (float) val * (sensor -> max_current / 32768) * 1000;
+
+    return ret;
 }
 
 
@@ -271,4 +274,13 @@ void INA219_decodeConfiguration(INA219* sensor, uint16_t configParameters)
     sensor->operatingMode = configParameters & INA219_CONFIG_OPERATING_MODE_MASK;
 }
 
+uint16_t INA219_calculate_calibration(INA219* sensor)
+{
+    float numer = 0.04096;
+    float denom = ((sensor -> max_current / 32768) * 100);
+
+    float calib = numer / denom;
+
+    return (uint16_t) calib;
+}
 

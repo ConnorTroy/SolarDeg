@@ -8,3 +8,5 @@ Release/
 .jxbrowser-data/
 RemoteSystemsTempFiles/
 *.json
+.vscode
+TI_Drivers/
