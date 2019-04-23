@@ -96,7 +96,6 @@ void INA219_writeCalibrationReg(INA219* sensor, uint16_t value)
     I2C_setSlaveAddress(sensor->module, sensor->address);
 
     // Separate new config data into 2 bytes
-//    value = value << 1;
     uint8_t MSB = (uint8_t) (value >> 8);
     uint8_t LSB = (uint8_t) value;
 
