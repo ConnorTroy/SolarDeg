@@ -45,25 +45,31 @@ void main(void)
     P1->REN  |=  BIT4;
     P1->OUT  |=  BIT4;
 
-    uint16_t MPP_Pins[] = {BIT0, BIT1, BIT2, BIT3, BIT4, BIT5};
-    uint16_t Sweep_Pins[] = {BIT0, BIT1, BIT2, BIT4, BIT5, BIT6};
+//    uint16_t MPP_Pins[] = {BIT0, BIT1, BIT2, BIT3, BIT4, BIT5};
+//    uint16_t Sweep_Pins[] = {BIT0, BIT1, BIT2, BIT4, BIT5, BIT6};
 
-    int c;
-    for (c = 0; c < sizeof(MPP_Pins); c++)
-    {
-        P4->SEL0 &= ~MPP_Pins[c];
-        P4->SEL1 &= ~MPP_Pins[c];
-        P4->DIR |= MPP_Pins[c];
-        P4->OUT |= MPP_Pins[c];
-    }
+//    int c;
+//    for (c = 0; c < sizeof(MPP_Pins); c++)
+//    {
+//        P4->SEL0 &= ~MPP_Pins[c];
+//        P4->SEL1 &= ~MPP_Pins[c];
+//        P4->DIR |= MPP_Pins[c];
+//        P4->OUT |= MPP_Pins[c];
+//    }
+//
+//    for (c = 0; c < sizeof(Sweep_Pins); c++)
+//    {
+//        P5->SEL0 &= ~Sweep_Pins[c];
+//        P5->SEL1 &= ~Sweep_Pins[c];
+//        P5->DIR |= Sweep_Pins[c];
+//        P5->OUT &= ~Sweep_Pins[c];
+//    }
 
-    for (c = 0; c < sizeof(Sweep_Pins); c++)
-    {
-        P5->SEL0 &= ~Sweep_Pins[c];
-        P5->SEL1 &= ~Sweep_Pins[c];
-        P5->DIR |= Sweep_Pins[c];
-        P5->OUT &= ~Sweep_Pins[c];
-    }
+    P3->SEL0 &= ~(BIT5 + BIT7);
+    P3->SEL1 &= ~(BIT5 + BIT7);
+    P3->DIR |= BIT5 + BIT7;
+    P3->OUT |= BIT7;
+    P3->OUT &= ~BIT5;
 
 
 
@@ -83,9 +89,8 @@ void main(void)
  */
 
     I2C_init(I2C_MODULE, &i2cConfig);
-    I2C_setSlaveAddress(I2C_MODULE, 0x40);
     I2C_enable(I2C_MODULE);
-    
+
 //    INA219_updateConfig(&powerSensorConfig, 0x0FFF);
 //    uint16_t con = INA219_readConfigReg(&powerSensorConfig);
 
@@ -95,7 +100,7 @@ void main(void)
     INA219_writeCalibrationReg(&powerSensorConfig, INA219_calculate_calibration(&powerSensorConfig));
     uint16_t cal = INA219_readCalibrationReg(&powerSensorConfig);
 
-//    uint16_t reg = INA219_readConfigReg(&powerSensorConfig);
+    uint16_t con = INA219_readConfigReg(&powerSensorConfig);
 //    uint16_t cal = INA219_readCalibrationReg(&powerSensorConfig);
 
 /*
@@ -145,14 +150,16 @@ void main(void)
  */
 
 
-    P1->SEL0 &= ~BIT0;
-    P1->SEL1 &= ~BIT0;
-    P1->DIR |= BIT0;
-    P1->OUT |= BIT0;
-
+//    P1->SEL0 &= ~BIT0;
+//    P1->SEL1 &= ~BIT0;
+//    P1->DIR |= BIT0;
+//    P1->OUT |= BIT0;
+//
     while(1)
     {
+//        uart_send_multiple( UART_MODULE, "Hello\n", 6 );
         float current = INA219_readCurrent(&powerSensorConfig);
+        current = current < powerSensorConfig.max_current ? current : 0;
         char iLine[11];
         memset(iLine, ' ', 11);
         ftoa(current, iLine, 7);
@@ -210,103 +217,97 @@ void main(void)
 //     }
 
 
-//    int dutyCycleRange = 25;
-//    float* V_arr;
-//    V_arr = malloc(dutyCycleRange * sizeof(float));
-//    float* I_arr;
-//    I_arr = malloc(dutyCycleRange * sizeof(float));
-//    memset(V_arr, 0, dutyCycleRange);
-//    memset(I_arr, 0, dutyCycleRange);
-//
-//
-//    int AA, dutyCycle;
-//    // Send Start Flag
-//    ext_send_start( UART_MODULE );
-//
-//    uart_send_byte( UART_MODULE, '0'); // Cell 0
-//    uart_send_byte( UART_MODULE, '\n');
-//
-//    uart_send_byte( UART_MODULE, '-'); // Active Area
-//    uart_send_byte( UART_MODULE, '\n');
-//
-//    for (dutyCycle = 0; dutyCycle <= dutyCycleRange; ++dutyCycle)
-//    {
-//
-//        // Update Duty Cycle
-////        TIMER_A0 -> CCR[1] = dutyCycle;
-//
-//        for (AA = 0; AA < 6; ++AA)
-//        {
-//
-//            // Switch Active Area
-////            P4->OUT ^= MPP_Pins[c];
-////            P5->OUT ^= Sweep_Pins[c];
-//
-//            __delay_cycles(10000);
-//            // Read INA
-//            float current = INA219_readCurrent(&powerSensorConfig);
-//            V_arr[AA] += dutyCycle;
-//            I_arr[AA] += current;
-//
-//            // Switch Active Area
-////            P4->OUT ^= MPP_Pins[c];
-////            P5->OUT ^= Sweep_Pins[c];
-//    //            while(!current)
-//    //            {
-//    //                current = INA219_readCurrent(&powerSensorConfig);
-//    //            }
-//    //            float current = 123.45678;
-//
-//            // Send Data
-//            if (!AA)
-//            {
-//                char vLine[6];
-//                memset(vLine, ' ', 6);
-//                ftoa(dutyCycle*2, vLine, 2);
-//                uart_send_multiple( UART_MODULE, (uint8_t*)vLine, sizeof(vLine));
-//                uart_send_byte( UART_MODULE, ' ');
-//
-//                char iLine[11];
-//                memset(iLine, ' ', 11);
-//                ftoa(current, iLine, 10);
-//                uart_send_multiple( UART_MODULE, (uint8_t*)iLine, sizeof(iLine));
-//                uart_send_byte( UART_MODULE, '\n');
-//            }
-//        }
-//
-//    }
-//    ext_send_end( UART_MODULE );
-//
-//    // Calculate MPP
-//    float* V_I_arr;
-//    V_I_arr  = malloc(dutyCycleRange * sizeof(float));
-//    memset(V_I_arr, 0, dutyCycleRange);
-//
-//    int MPP_Index = 0;
-//    float MPP = 0;
-//
-//    int i;
-//    for (i = 0; i < dutyCycleRange; i++)
-//    {
-//        V_arr[i] /= 6;
-//        I_arr[i] /= 6;
-//        V_I_arr[i] = V_arr[i] * I_arr[i];
-//        if (V_I_arr[i] > MPP)
-//        {
-//            MPP = V_I_arr[i];
-//            MPP_Index = i;
-//        }
-//
-//    }
-//    free(V_arr);
-//    free(I_arr);
-//    free(V_I_arr);
-//
-//    // Set MPP
-//    TIMER_A0 -> CCR[1] = MPP_Index;
-//
-//
-//    P1->OUT &= ~BIT0;
+    int dutyCycleRange = 25;
+    float* V_arr;
+    V_arr = malloc(dutyCycleRange * sizeof(float));
+    float* I_arr;
+    I_arr = malloc(dutyCycleRange * sizeof(float));
+    memset(V_arr, 0, dutyCycleRange);
+    memset(I_arr, 0, dutyCycleRange);
+
+
+    int AA, dutyCycle;
+    // Send Start Flag
+    ext_send_start( UART_MODULE );
+
+    uart_send_byte( UART_MODULE, '0'); // Cell 0
+    uart_send_byte( UART_MODULE, '\n');
+
+    uart_send_byte( UART_MODULE, '-'); // Active Area
+    uart_send_byte( UART_MODULE, '\n');
+
+
+    P3->OUT ^= BIT5 + BIT7;
+
+    for (dutyCycle = 0; dutyCycle <= dutyCycleRange; ++dutyCycle)
+    {
+
+        // Update Duty Cycle
+        TIMER_A0 -> CCR[1] = dutyCycle;
+
+        for (AA = 0; AA < 6; ++AA)
+        {
+
+            // Switch Active Area
+
+            __delay_cycles(10000);
+            // Read INA
+            float current = INA219_readCurrent(&powerSensorConfig);
+            V_arr[AA] += dutyCycle;
+            I_arr[AA] += current;
+
+            // Send Data
+            if (!AA)
+            {
+                char vLine[6];
+                memset(vLine, ' ', 6);
+                ftoa(dutyCycle*2, vLine, 2);
+                uart_send_multiple( UART_MODULE, (uint8_t*)vLine, sizeof(vLine));
+                uart_send_byte( UART_MODULE, ' ');
+
+                char iLine[11];
+                memset(iLine, ' ', 11);
+                ftoa(current, iLine, 10);
+                uart_send_multiple( UART_MODULE, (uint8_t*)iLine, sizeof(iLine));
+                uart_send_byte( UART_MODULE, '\n');
+            }
+        }
+
+    }
+    ext_send_end( UART_MODULE );
+
+    P3->OUT ^= BIT5 + BIT7;
+
+    // Calculate MPP
+    float* V_I_arr;
+    V_I_arr  = malloc(dutyCycleRange * sizeof(float));
+    memset(V_I_arr, 0, dutyCycleRange);
+
+    int MPP_Index = 0;
+    float MPP = 0;
+
+    int i;
+    for (i = 0; i < dutyCycleRange; i++)
+    {
+        V_arr[i] /= 6;
+        I_arr[i] /= 6;
+        V_I_arr[i] = V_arr[i] * I_arr[i];
+        if (V_I_arr[i] > MPP)
+        {
+            MPP = V_I_arr[i];
+            MPP_Index = i;
+        }
+
+    }
+    free(V_arr);
+    free(I_arr);
+    free(V_I_arr);
+
+    // Set MPP
+    TIMER_A0 -> CCR[1] = MPP_Index;
+
+
+    P1->OUT &= ~BIT0;
 
 
 
