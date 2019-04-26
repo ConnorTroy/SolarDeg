@@ -37,7 +37,7 @@
 #define INA219_ADDR             0x40
 
 #define I2C_MODULE              EUSCI_B1
-#define UART_MODULE             EUSCI_A0
+#define UART_MODULE             EUSCI_A2
 
 
 #define UART_RX_BUF_LEN         15
@@ -71,13 +71,15 @@ const UART_Config uartConfig =
 INA219 powerSensorConfig =
 {
      I2C_MODULE,
-     INA219_ADDR_1,
+     INA219_ADDR_6,
+//     INA219_ADDR_3,
+//     INA219_ADDR_1,
      INA219_CONFIG_BRNG_32V,
      INA219_CONFIG_PGA_320,
      INA219_CONFIG_BADC_12_BIT,
      INA219_CONFIG_SADC_12_BIT,
      INA219_CONFIG_SHUNT_BUS_CONTINUOUS,
-     1
+     0.20
 };
 
 
