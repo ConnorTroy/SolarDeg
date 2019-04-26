@@ -93,6 +93,9 @@
 #define INA219_CONFIG_SHUNT_BUS_CONTINUOUS                                 0x0007
 
 
+#define R_SHUNT     1
+
+
 typedef struct
 {
     EUSCI_B_Type * module;

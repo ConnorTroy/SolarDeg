@@ -232,8 +232,8 @@ float INA219_readCurrent(INA219* sensor)
     // Recieve data in register
     I2C_receive(sensor->module, RX_Data, 2);
 
-    int val = (RX_Data[0] << 8) + RX_Data[1];
-    float ret = (float) val * (sensor -> max_current / 32768) * 1000;
+    uint16_t val = (RX_Data[0] << 8) + RX_Data[1];
+    float ret = (float) val * (sensor -> max_current / 32768);
 
     return ret;
 }
@@ -277,7 +277,7 @@ void INA219_decodeConfiguration(INA219* sensor, uint16_t configParameters)
 uint16_t INA219_calculate_calibration(INA219* sensor)
 {
     float numer = 0.04096;
-    float denom = ((sensor -> max_current / 32768) * 100);
+    float denom = ((sensor -> max_current / 32768) * R_SHUNT);
 
     float calib = numer / denom;
 

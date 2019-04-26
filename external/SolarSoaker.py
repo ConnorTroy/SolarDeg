@@ -122,6 +122,9 @@ def main():
         line = ser.readline()
         if line == start_str:
             data_transfer(ser)
+        elif line == expected_receive_on_connect:
+            ser.write(send_on_connect)
+
 
 
 main()
